@@ -1,29 +1,13 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Source_Serif_4, IBM_Plex_Mono, Geist } from "next/font/google";
+import { Space_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
-
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
+const spaceMono = Space_Mono({
+  variable: "--font-space-mono",
   subsets: ["latin"],
   display: "swap",
-  weight: ["400", "500", "600", "700", "800", "900"],
-});
-
-const sourceSerif = Source_Serif_4({
-  variable: "--font-source-serif",
-  subsets: ["latin"],
-  display: "swap",
-  weight: ["300", "400", "500", "600"],
-});
-
-const ibmPlex = IBM_Plex_Mono({
-  variable: "--font-ibm-plex",
-  subsets: ["latin"],
-  display: "swap",
-  weight: ["300", "400", "500"],
+  weight: ["400", "700"],
 });
 
 export const metadata: Metadata = {
@@ -46,10 +30,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={cn("h-full", "antialiased", playfair.variable, sourceSerif.variable, ibmPlex.variable, "font-sans", geist.variable)}
-    >
+    <html lang="en" className={cn("h-full antialiased", spaceMono.variable)}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

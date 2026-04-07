@@ -3,11 +3,15 @@
 import { useRef, useCallback } from "react";
 
 export function useMagneticButton<T extends HTMLElement>(strength = 0.3) {
-  const ref = useRef<T>(null);
+  const elementRef = useRef<T | null>(null);
+
+  const ref = useCallback((node: T | null) => {
+    elementRef.current = node;
+  }, []);
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<T>) => {
-      const el = ref.current;
+      const el = elementRef.current;
       if (!el) return;
       const rect = el.getBoundingClientRect();
       const x = e.clientX - rect.left - rect.width / 2;
@@ -18,7 +22,7 @@ export function useMagneticButton<T extends HTMLElement>(strength = 0.3) {
   );
 
   const handleMouseLeave = useCallback(() => {
-    const el = ref.current;
+    const el = elementRef.current;
     if (!el) return;
     el.style.transform = "translate(0px, 0px)";
   }, []);

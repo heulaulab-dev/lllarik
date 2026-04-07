@@ -1,6 +1,7 @@
 import Hero from "@/components/Hero";
 import Narrative from "@/components/Narrative";
 import ProductShowcase from "@/components/ProductShowcase";
+import Lookbook from "@/components/Lookbook";
 import SocialProof from "@/components/SocialProof";
 import CraftPhilosophy from "@/components/CraftPhilosophy";
 import Conversion from "@/components/Conversion";
@@ -12,6 +13,7 @@ export default function Home() {
       <Hero />
       <Narrative />
       <ProductShowcase />
+      <Lookbook />
       <SocialProof />
       <CraftPhilosophy />
       <Conversion />

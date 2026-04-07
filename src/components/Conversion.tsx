@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { useMagneticButton } from "@/hooks/useMagneticButton";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function Conversion() {
   const [formData, setFormData] = useState({
@@ -26,27 +28,26 @@ export default function Conversion() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-6">
         {/* Left — Headline + Context */}
         <div ref={titleRef} className="lg:col-span-5 flex flex-col justify-center">
-          <p className="font-mono text-[10px] tracking-[0.3em] uppercase text-wood mb-6">
+          <p className="text-[10px] tracking-[0.4em] uppercase text-muted-foreground mb-6">
             Begin Here
           </p>
-          <h2 className="font-display text-4xl md:text-5xl lg:text-[3.5rem] font-bold leading-[1.05] tracking-tight">
+          <h2 className="text-3xl md:text-4xl lg:text-[2.75rem] font-bold leading-[1.05] tracking-tight uppercase">
             Make Your Space
             <br />
-            <span className="italic font-normal">Unmistakably Yours</span>
+            <span className="font-normal normal-case italic">Unmistakably Yours</span>
           </h2>
-          <p className="font-body text-base md:text-lg text-muted leading-relaxed mt-6 max-w-md">
+          <p className="text-sm text-muted-foreground leading-relaxed mt-6 max-w-md">
             Whether you&apos;re furnishing a new home, redesigning a room, or
             seeking a single statement piece — we&apos;ll guide you through
             our curated collection.
           </p>
 
-          {/* Lookbook CTA */}
           <a
             ref={lookbookBtn.ref}
             onMouseMove={lookbookBtn.handleMouseMove}
             onMouseLeave={lookbookBtn.handleMouseLeave}
-            href="#"
-            className="magnetic-btn inline-flex items-center gap-3 mt-8 font-mono text-xs tracking-widest uppercase text-foreground border-b border-foreground/30 pb-1 hover:border-wood hover:text-wood transition-colors duration-500 w-fit"
+            href="#lookbook"
+            className="magnetic-btn inline-flex items-center gap-3 mt-8 text-[10px] tracking-[0.25em] uppercase border-b border-foreground/30 pb-1 hover:border-foreground hover:text-foreground transition-colors duration-500 w-fit"
           >
             View Lookbook
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -54,9 +55,8 @@ export default function Conversion() {
             </svg>
           </a>
 
-          {/* Decorative element */}
-          <div className="hidden lg:block mt-16 w-24 h-24 border border-foreground/10 relative">
-            <div className="absolute -bottom-3 -right-3 w-24 h-24 border border-wood/20" />
+          <div className="hidden lg:block mt-16 w-24 h-24 border border-border relative">
+            <div className="absolute -bottom-3 -right-3 w-24 h-24 border border-foreground/15" />
           </div>
         </div>
 
@@ -65,39 +65,39 @@ export default function Conversion() {
           {!isSubmitted ? (
             <form onSubmit={handleSubmit} className="space-y-8">
               <div>
-                <label className="block font-mono text-[10px] tracking-[0.3em] uppercase text-muted mb-3">
+                <label className="block text-[10px] tracking-[0.4em] uppercase text-muted-foreground mb-3">
                   Your Name
                 </label>
-                <input
+                <Input
                   type="text"
                   required
                   value={formData.name}
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
-                  className="w-full bg-transparent border-b border-foreground/20 pb-3 font-body text-lg text-foreground placeholder:text-muted/30 focus:border-wood focus:outline-none transition-colors duration-300"
+                  className="w-full bg-transparent border-0 border-b border-border rounded-none px-0 pb-3 h-auto text-base text-foreground placeholder:text-muted-foreground/30 focus-visible:ring-0 focus-visible:border-foreground transition-colors duration-300"
                   placeholder="e.g., Andi Pratama"
                 />
               </div>
 
               <div>
-                <label className="block font-mono text-[10px] tracking-[0.3em] uppercase text-muted mb-3">
+                <label className="block text-[10px] tracking-[0.4em] uppercase text-muted-foreground mb-3">
                   Email Address
                 </label>
-                <input
+                <Input
                   type="email"
                   required
                   value={formData.email}
                   onChange={(e) =>
                     setFormData({ ...formData, email: e.target.value })
                   }
-                  className="w-full bg-transparent border-b border-foreground/20 pb-3 font-body text-lg text-foreground placeholder:text-muted/30 focus:border-wood focus:outline-none transition-colors duration-300"
+                  className="w-full bg-transparent border-0 border-b border-border rounded-none px-0 pb-3 h-auto text-base text-foreground placeholder:text-muted-foreground/30 focus-visible:ring-0 focus-visible:border-foreground transition-colors duration-300"
                   placeholder="your@email.com"
                 />
               </div>
 
               <div>
-                <label className="block font-mono text-[10px] tracking-[0.3em] uppercase text-muted mb-3">
+                <label className="block text-[10px] tracking-[0.4em] uppercase text-muted-foreground mb-3">
                   Project Type
                 </label>
                 <div className="grid grid-cols-2 gap-3">
@@ -107,20 +107,21 @@ export default function Conversion() {
                     "Single Piece",
                     "Commercial Space",
                   ].map((type) => (
-                    <button
+                    <Button
                       key={type}
                       type="button"
+                      variant="outline"
                       onClick={() =>
                         setFormData({ ...formData, projectType: type })
                       }
-                      className={`py-3 px-4 font-mono text-[10px] tracking-[0.15em] uppercase border transition-all duration-300 text-left ${
+                      className={`h-auto py-3 px-4 text-[10px] tracking-[0.15em] uppercase justify-start transition-all duration-300 cursor-pointer ${
                         formData.projectType === type
-                          ? "border-wood bg-wood/10 text-wood"
-                          : "border-foreground/10 text-muted hover:border-foreground/30"
+                          ? "border-foreground bg-foreground/5 text-foreground"
+                          : "border-border text-muted-foreground hover:border-foreground/30"
                       }`}
                     >
                       {type}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -130,26 +131,26 @@ export default function Conversion() {
                 onMouseMove={submitBtn.handleMouseMove}
                 onMouseLeave={submitBtn.handleMouseLeave}
                 type="submit"
-                className="magnetic-btn w-full bg-foreground text-background py-5 font-mono text-xs tracking-widest uppercase hover:bg-wood transition-colors duration-500 mt-4"
+                className="magnetic-btn w-full bg-primary text-primary-foreground py-5 text-[10px] tracking-[0.25em] uppercase hover:bg-foreground/80 transition-colors duration-500 mt-4 cursor-pointer"
               >
                 Start Your Space
               </button>
 
-              <p className="font-mono text-[9px] tracking-wider text-muted/40 text-center uppercase">
+              <p className="text-[9px] tracking-wider text-muted-foreground/40 text-center uppercase">
                 Consultation is complimentary. No commitment required.
               </p>
             </form>
           ) : (
             <div className="flex flex-col items-center justify-center py-16 text-center animate-reveal-up">
-              <div className="w-16 h-16 border-2 border-forest rounded-full flex items-center justify-center mb-6">
+              <div className="w-16 h-16 border-2 border-foreground flex items-center justify-center mb-6">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                  <path d="M5 12l5 5L19 7" stroke="#2F5D50" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M5 12l5 5L19 7" stroke="#0A0A0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
-              <h3 className="font-display text-2xl font-bold tracking-tight mb-3">
+              <h3 className="text-xl font-bold tracking-tight uppercase mb-3">
                 We&apos;ll Be in Touch
               </h3>
-              <p className="font-body text-base text-muted max-w-sm">
+              <p className="text-sm text-muted-foreground max-w-sm">
                 Thank you, {formData.name}. Our team will reach out within
                 24 hours to begin curating your space.
               </p>
