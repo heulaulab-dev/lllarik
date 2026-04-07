@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from 'react';
 import Image from "next/image";
 import { useMousePosition } from "@/hooks/useMousePosition";
 import { useMagneticButton } from "@/hooks/useMagneticButton";
@@ -7,6 +8,7 @@ import { Button } from "@/components/ui/button";
 
 export default function Hero() {
   const mouse = useMousePosition();
+  const [menuOpen, setMenuOpen] = useState(false);
   const primaryBtn = useMagneticButton<HTMLAnchorElement>(0.25);
   const secondaryBtn = useMagneticButton<HTMLAnchorElement>(0.2);
 
@@ -17,10 +19,10 @@ export default function Hero() {
 				<Image
 					src='/LLLARIK Logo-08.png'
 					alt='LLLARIK.id'
-					width={180}
-					height={180}
+					width={300}
+					height={300}
 					priority
-					className='w-28 md:w-36 h-auto'
+					className='w-60 h-auto'
 				/>
 				<div className='hidden md:flex items-center gap-8 text-[10px] text-muted-foreground uppercase tracking-[0.25em]'>
 					<a
@@ -36,7 +38,7 @@ export default function Hero() {
 						Philosophy
 					</a>
 					<a
-						href='#spaces'
+						href='#lookbook'
 						className='hover:text-foreground transition-colors duration-300'
 					>
 						Spaces
@@ -48,10 +50,42 @@ export default function Hero() {
 						Contact
 					</a>
 				</div>
-				<div className='md:hidden text-[10px] text-muted-foreground uppercase tracking-[0.25em]'>
-					Menu
+				<div className='md:hidden'>
+					<button
+						type='button'
+						aria-expanded={menuOpen}
+						aria-controls='mobile-nav'
+						onClick={() => setMenuOpen((prev) => !prev)}
+						className='text-[10px] text-muted-foreground hover:text-foreground uppercase tracking-[0.25em] transition-colors duration-300 cursor-pointer'
+					>
+						{menuOpen ? 'Close' : 'Menu'}
+					</button>
 				</div>
 			</nav>
+			{menuOpen && (
+				<div
+					id='mobile-nav'
+					className='md:hidden z-30 relative bg-background/95 backdrop-blur-sm mt-6 border border-border'
+				>
+					<div className='flex flex-col p-4'>
+						{[
+							{ label: 'Collection', href: '#collection' },
+							{ label: 'Philosophy', href: '#philosophy' },
+							{ label: 'Spaces', href: '#lookbook' },
+							{ label: 'Contact', href: '#contact' },
+						].map((item) => (
+							<a
+								key={item.href}
+								href={item.href}
+								onClick={() => setMenuOpen(false)}
+								className='py-3 border-border border-b last:border-b-0 text-[10px] text-muted-foreground hover:text-foreground uppercase tracking-[0.25em] transition-colors duration-300'
+							>
+								{item.label}
+							</a>
+						))}
+					</div>
+				</div>
+			)}
 
 			{/* Hero Content — Asymmetric Brutalist Grid */}
 			<div className='z-10 relative items-end gap-6 grid grid-cols-1 lg:grid-cols-12 mt-16 md:mt-24 lg:mt-32 min-h-[70vh]'>
@@ -115,7 +149,7 @@ export default function Hero() {
 							ref={secondaryBtn.ref}
 							onMouseMove={secondaryBtn.handleMouseMove}
 							onMouseLeave={secondaryBtn.handleMouseLeave}
-							href='#spaces'
+							href='#lookbook'
 							className='inline-flex items-center gap-2 pb-1 border-foreground hover:border-muted-foreground border-b text-[10px] hover:text-muted-foreground uppercase tracking-[0.25em] transition-colors duration-500 magnetic-btn'
 						>
 							Enter the Space
