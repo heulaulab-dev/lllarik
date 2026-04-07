@@ -121,7 +121,7 @@ export default function Footer() {
 			{/* Bottom Bar */}
 			<div className='flex md:flex-row flex-col justify-between items-center gap-4 mt-16 pt-8 border-border border-t'>
 				<p className='text-[9px] text-muted-foreground/30 uppercase tracking-[0.2em]'>
-					© 2024 LLLARIK.id — All rights reserved
+					© 2026 LLLARIK.id — All rights reserved
 				</p>
 				<div className='flex items-center gap-6'>
 					<a
