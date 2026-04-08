@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -42,7 +43,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { useDashboardAuthStore } from "@/lib/dashboardStore";
 
 const items = [
@@ -56,15 +58,27 @@ const items = [
 export default function DashboardAppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const token = useDashboardAuthStore((s) => s.token);
   const clearToken = useDashboardAuthStore((s) => s.clearToken);
+
+  useEffect(() => {
+    if (!token) {
+      router.replace("/dashboard/login");
+    }
+  }, [token, router]);
+
+  if (!token) return null;
 
   return (
     <SidebarProvider>
       <Sidebar variant="inset">
         <SidebarHeader>
-          <Button variant="outline" className="justify-start">
-            <Link href="/dashboard/overview">LLLARIK Dashboard</Link>
-          </Button>
+          <Link
+            href="/dashboard/overview"
+            className={cn(buttonVariants({ variant: "outline" }), "justify-start")}
+          >
+            LLLARIK Dashboard
+          </Link>
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
@@ -120,11 +134,11 @@ export default function DashboardAppLayout({ children }: { children: React.React
           <div className="ml-auto">
             <DropdownMenu>
               <DropdownMenuTrigger>
-                <Button variant="ghost" size="icon">
+                <span className={cn(buttonVariants({ variant: "ghost", size: "icon" }))}>
                   <Avatar className="size-8">
                     <AvatarFallback>AD</AvatarFallback>
                   </Avatar>
-                </Button>
+                </span>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem

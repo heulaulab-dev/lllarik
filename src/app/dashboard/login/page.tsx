@@ -1,17 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useDashboardLogin } from "@/lib/dashboardService";
+import { useDashboardAuthStore } from "@/lib/dashboardStore";
 
 export default function DashboardLoginPage() {
   const router = useRouter();
+  const token = useDashboardAuthStore((s) => s.token);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const login = useDashboardLogin();
+
+  useEffect(() => {
+    if (token) {
+      router.replace("/dashboard/overview");
+    }
+  }, [token, router]);
 
   return (
     <main className="min-h-screen grid place-items-center p-6">
