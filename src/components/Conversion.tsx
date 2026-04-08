@@ -51,7 +51,6 @@ export default function Conversion() {
 					</p>
 
 					<a
-						ref={lookbookBtn.ref}
 						onMouseMove={lookbookBtn.handleMouseMove}
 						onMouseLeave={lookbookBtn.handleMouseLeave}
 						href='#lookbook'
@@ -141,7 +140,6 @@ export default function Conversion() {
 							</div>
 
 							<button
-								ref={submitBtn.ref}
 								onMouseMove={submitBtn.handleMouseMove}
 								onMouseLeave={submitBtn.handleMouseLeave}
 								type='submit'

@@ -12,52 +12,13 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  defaultLandingContent,
+  type LandingProduct,
+  type ProductShowcaseContent,
+} from "@/lib/landingContent";
 
-interface Product {
-  name: string;
-  category: string;
-  material: string;
-  story: string;
-  tags: string[];
-  image: string;
-}
-
-const products: Product[] = [
-  {
-    name: "Solen",
-    category: "Standing Mirror",
-    material: "Lacquered MDF, birch plywood stand",
-    story: "An elongated oval silhouette in golden yellow — Solen captures light and anchors any room with its warm, optimistic presence. Available in floor and tabletop sizes.",
-    tags: ["Standing Mirror", "Hand-lacquered", "Limited Batch"],
-    image: "/products/01. SOLEN.jpg.jpeg",
-  },
-  {
-    name: "Aven",
-    category: "Accent Mirror",
-    material: "Lacquered MDF, birch plywood stand",
-    story: "Organic freeform curves in coral pink — Aven is designed to break every straight line in your space. A mirror that refuses to be ignored.",
-    tags: ["Freeform Shape", "Floor + Tabletop", "Limited Edition"],
-    image: "/products/02. AVEN.jpg.jpeg",
-  },
-  {
-    name: "Karo",
-    category: "Standing Mirror",
-    material: "Lacquered MDF, birch plywood stand",
-    story: "Clean geometry meets bold color. Karo grounds a room with confident structure — sharp corners softened just enough to feel alive.",
-    tags: ["Angular Form", "Hand-lacquered", "Limited Batch"],
-    image: "/products/03. KARO.jpg.jpeg",
-  },
-  {
-    name: "Elio",
-    category: "Statement Mirror",
-    material: "Lacquered MDF, birch plywood stand",
-    story: "Soft waves and a whimsical silhouette in sky blue — Elio brings play into reflection. Each curve is an invitation to see your space differently.",
-    tags: ["Wavy Silhouette", "Artisan Made", "Limited Edition"],
-    image: "/products/04. ELIO.jpg.jpeg",
-  },
-];
-
-function ProductCard({ product, index, onClick }: { product: Product; index: number; onClick: () => void }) {
+function ProductCard({ product, index, onClick }: { product: LandingProduct; index: number; onClick: () => void }) {
   const cardRef = useScrollReveal<HTMLDivElement>(index % 2 === 0 ? "up" : "right");
 
   return (
@@ -126,7 +87,7 @@ function ProductModal({
   open,
   onClose,
 }: {
-  product: Product | null;
+  product: LandingProduct | null;
   open: boolean;
   onClose: () => void;
 }) {
@@ -191,40 +152,50 @@ function ProductModal({
   );
 }
 
-export default function ProductShowcase() {
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+type ProductShowcaseProps = {
+  products?: LandingProduct[];
+  content?: ProductShowcaseContent;
+};
+
+export default function ProductShowcase({
+  products = defaultLandingContent.products,
+  content = defaultLandingContent.productShowcase,
+}: ProductShowcaseProps) {
+  const [selectedProduct, setSelectedProduct] = useState<LandingProduct | null>(null);
   const titleRef = useScrollReveal<HTMLDivElement>("up");
+  const displayProducts = products.slice(0, 4);
+  if (displayProducts.length < 4) return null;
 
   return (
     <section id="collection" className="relative py-32 md:py-48 px-6 md:px-12 lg:px-20">
       <div ref={titleRef} className="mb-16 md:mb-24">
         <p className="text-[10px] tracking-[0.4em] uppercase text-muted-foreground mb-4">
-          The Collection
+          {content.label}
         </p>
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-[1.05] tracking-tight uppercase">
-            Pieces That
+            {content.headingLine1}
             <br />
-            <span className="font-normal normal-case italic">Define a Room</span>
+            <span className="font-normal normal-case italic">{content.headingAccent}</span>
           </h2>
           <p className="text-xs text-muted-foreground max-w-xs leading-relaxed">
-            Not a catalog. A curated selection of mirrors that carry shape, color, and character.
+            {content.description}
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 auto-rows-auto">
         <div className="lg:col-span-1 lg:row-span-2 lg:mt-12">
-          <ProductCard product={products[0]} index={0} onClick={() => setSelectedProduct(products[0])} />
+          <ProductCard product={displayProducts[0]} index={0} onClick={() => setSelectedProduct(displayProducts[0])} />
         </div>
         <div className="lg:col-span-1">
-          <ProductCard product={products[1]} index={1} onClick={() => setSelectedProduct(products[1])} />
+          <ProductCard product={displayProducts[1]} index={1} onClick={() => setSelectedProduct(displayProducts[1])} />
         </div>
         <div className="lg:col-span-1 lg:mt-24">
-          <ProductCard product={products[2]} index={2} onClick={() => setSelectedProduct(products[2])} />
+          <ProductCard product={displayProducts[2]} index={2} onClick={() => setSelectedProduct(displayProducts[2])} />
         </div>
         <div className="lg:col-span-1 lg:col-start-2 lg:-mt-8">
-          <ProductCard product={products[3]} index={3} onClick={() => setSelectedProduct(products[3])} />
+          <ProductCard product={displayProducts[3]} index={3} onClick={() => setSelectedProduct(displayProducts[3])} />
         </div>
       </div>
 

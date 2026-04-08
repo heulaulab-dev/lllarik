@@ -5,8 +5,13 @@ import Image from "next/image";
 import { useMousePosition } from "@/hooks/useMousePosition";
 import { useMagneticButton } from "@/hooks/useMagneticButton";
 import { Button } from "@/components/ui/button";
+import { defaultLandingContent, type HeroContent } from "@/lib/landingContent";
 
-export default function Hero() {
+type HeroProps = {
+	content?: HeroContent;
+};
+
+export default function Hero({ content = defaultLandingContent.hero }: HeroProps) {
   const mouse = useMousePosition();
   const [menuOpen, setMenuOpen] = useState(false);
   const primaryBtn = useMagneticButton<HTMLAnchorElement>(0.25);
@@ -29,25 +34,25 @@ export default function Hero() {
 						href='#collection'
 						className='hover:text-foreground transition-colors duration-300'
 					>
-						Collection
+						{content.navCollection}
 					</a>
 					<a
 						href='#philosophy'
 						className='hover:text-foreground transition-colors duration-300'
 					>
-						Philosophy
+						{content.navPhilosophy}
 					</a>
 					<a
 						href='#lookbook'
 						className='hover:text-foreground transition-colors duration-300'
 					>
-						Spaces
+						{content.navSpaces}
 					</a>
 					<a
 						href='#contact'
 						className='hover:text-foreground transition-colors duration-300'
 					>
-						Contact
+						{content.navContact}
 					</a>
 				</div>
 				<div className='md:hidden'>
@@ -69,10 +74,10 @@ export default function Hero() {
 				>
 					<div className='flex flex-col p-4'>
 						{[
-							{ label: 'Collection', href: '#collection' },
-							{ label: 'Philosophy', href: '#philosophy' },
-							{ label: 'Spaces', href: '#lookbook' },
-							{ label: 'Contact', href: '#contact' },
+							{ label: content.navCollection, href: '#collection' },
+							{ label: content.navPhilosophy, href: '#philosophy' },
+							{ label: content.navSpaces, href: '#lookbook' },
+							{ label: content.navContact, href: '#contact' },
 						].map((item) => (
 							<a
 								key={item.href}
@@ -93,41 +98,39 @@ export default function Hero() {
 				<div className='flex flex-col justify-end lg:col-span-7 pb-8 lg:pb-16'>
 					<div className='animate-reveal-up delay-200'>
 						<p className='mb-6 text-[10px] text-muted-foreground uppercase tracking-[0.4em]'>
-							Est. 2026 — Jakarta, Indonesia
+							{content.estLine}
 						</p>
 					</div>
 
 					<h1 className='font-bold text-[clamp(2rem,6vw,5rem)] uppercase leading-[0.95] tracking-tight animate-reveal-up delay-300'>
-						Your Space
+						{content.headlineLine1}
 						<br />
-						Should Speak
+						{content.headlineLine2}
 						<br />
 						<span className='font-normal text-muted-foreground italic normal-case'>
-							Before You Do
+							{content.headlineAccent}
 						</span>
 					</h1>
 
 					<div className='mt-8 md:mt-12 max-w-lg animate-reveal-up delay-500'>
 						<p className='text-muted-foreground text-sm md:text-base leading-relaxed'>
-							Curated mirrors for expressive living.
+							{content.bodyPrimary}
 						</p>
 						<p className='mt-3 text-muted-foreground/60 text-xs leading-relaxed'>
-							Each piece is a quiet declaration — shaped to transform rooms into
-							reflections of who you are.
+							{content.bodySecondary}
 						</p>
 					</div>
 
 					{/* CTAs */}
 					<div className='flex flex-wrap items-center gap-6 mt-10 animate-reveal-up delay-700'>
 						<a
-							ref={primaryBtn.ref}
 							onMouseMove={primaryBtn.handleMouseMove}
 							onMouseLeave={primaryBtn.handleMouseLeave}
 							href='#collection'
 							className='magnetic-btn'
 						>
 							<Button className='bg-primary hover:bg-foreground/80 px-8 py-4 h-auto text-[10px] text-primary-foreground uppercase tracking-[0.25em] transition-colors duration-500 cursor-pointer'>
-								Explore the Collection
+								{content.primaryCta}
 								<svg
 									width='14'
 									height='14'
@@ -146,13 +149,12 @@ export default function Hero() {
 							</Button>
 						</a>
 						<a
-							ref={secondaryBtn.ref}
 							onMouseMove={secondaryBtn.handleMouseMove}
 							onMouseLeave={secondaryBtn.handleMouseLeave}
 							href='#lookbook'
 							className='inline-flex items-center gap-2 pb-1 border-foreground hover:border-muted-foreground border-b text-[10px] hover:text-muted-foreground uppercase tracking-[0.25em] transition-colors duration-500 magnetic-btn'
 						>
-							Enter the Space
+							{content.secondaryCta}
 						</a>
 					</div>
 				</div>
@@ -167,8 +169,8 @@ export default function Hero() {
 						}}
 					>
 						<Image
-							src='/products/01. SOLEN.jpg.jpeg'
-							alt='Solen Standing Mirror — LLLARIK.id'
+							src={content.heroImage}
+							alt={content.heroImageAlt}
 							fill
 							priority
 							sizes='(max-width: 1024px) 100vw, 40vw'
@@ -179,7 +181,7 @@ export default function Hero() {
 							}}
 						/>
 						<div className='right-4 bottom-4 absolute text-[9px] text-foreground/40 uppercase tracking-[0.2em] mix-blend-difference'>
-							Vol. 01 — The Essential
+							{content.heroBadge}
 						</div>
 					</div>
 
@@ -189,7 +191,7 @@ export default function Hero() {
 
 			{/* Trust Signals */}
 			<div className='z-10 relative flex flex-wrap gap-x-12 gap-y-3 mt-16 md:mt-20 pb-12 animate-reveal-up delay-1000'>
-				{['Curated Pieces', 'Limited Editions', 'Crafted with Intent'].map(
+				{content.trustSignals.map(
 					(signal, i) => (
 						<span
 							key={signal}
