@@ -50,4 +50,32 @@ describe("getLandingContent", () => {
     const content = await getLandingContent();
     expect(content.products).toEqual([]);
   });
+
+  it("uses NEXT_PUBLIC_CONTENT_API_URL when CONTENT_API_URL is not set", async () => {
+    vi.unstubAllEnvs();
+    vi.stubEnv("NEXT_PUBLIC_CONTENT_API_URL", "http://public-api.test");
+
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          products: [
+            {
+              name: "Aven",
+              category: "Mirror",
+              material: "MDF",
+              story: "Story",
+              tags: ["Limited"],
+              image_url: "/aven.jpg",
+            },
+          ],
+        }),
+        { status: 200 },
+      ),
+    );
+
+    const content = await getLandingContent();
+    expect(fetchSpy).toHaveBeenCalledWith("http://public-api.test/api/v1/public/content", { cache: "no-store" });
+    expect(content.products).toHaveLength(1);
+    expect(content.products[0]?.name).toBe("Aven");
+  });
 });
