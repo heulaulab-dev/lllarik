@@ -173,7 +173,8 @@ export default function Hero({ content = defaultLandingContent.hero }: HeroProps
 							alt={content.heroImageAlt}
 							fill
 							priority
-							sizes='(max-width: 1024px) 100vw, 40vw'
+							quality={68}
+							sizes='(max-width: 640px) 92vw, (max-width: 1024px) 86vw, 40vw'
 							className='object-cover'
 							style={{
 								transform: `scale(1.05) translate(${mouse.normalizedX * 4}px, ${mouse.normalizedY * 4}px)`,
