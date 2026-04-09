@@ -83,14 +83,16 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
             <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Workspace</div>
             <div className="truncate text-sm font-medium text-foreground">LLLARIK Dashboard</div>
           </Link>
-          <div
+          <button
+            type="button"
+            aria-label="Search dashboard"
             data-testid="dashboard-sidebar-search"
-            className="flex items-center gap-2 rounded-md border bg-white px-2.5 py-2 text-xs text-muted-foreground"
+            className="flex w-full items-center gap-2 rounded-md border bg-white px-2.5 py-2 text-xs text-muted-foreground"
           >
             <Search className="size-3.5" />
             <span>Search</span>
             <kbd className="ml-auto rounded border bg-muted px-1.5 py-0.5 text-[10px]">/</kbd>
-          </div>
+          </button>
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup className="pt-0">
@@ -145,11 +147,11 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
             className="flex items-center gap-2 rounded-md border bg-white px-2 py-2"
           >
             <Avatar className="size-7">
-              <AvatarFallback>AD</AvatarFallback>
+              <AvatarFallback>AC</AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-medium leading-tight">Admin</p>
-              <p className="truncate text-[11px] text-muted-foreground leading-tight">dashboard@lllarik.com</p>
+              <p className="truncate text-xs font-medium leading-tight">Account</p>
+              <p className="truncate text-[11px] text-muted-foreground leading-tight">Manage profile</p>
             </div>
             <Button
               variant="ghost"
