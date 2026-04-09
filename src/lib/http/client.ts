@@ -32,7 +32,7 @@ async function requestRefreshToken(refreshToken: string): Promise<{ accessToken:
 function handleSessionExpired() {
   useDashboardAuthStore.getState().clearTokens();
   if (typeof window !== "undefined") {
-    window.location.href = "/dashboard/login";
+    window.location.href = "/login";
   }
 }
 

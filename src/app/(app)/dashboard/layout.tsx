@@ -81,12 +81,12 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
   const logout = useDashboardLogout();
   const handleSignOut = () => {
     logout.mutate();
-    router.push("/dashboard/login");
+    router.push("/login");
   };
 
   useEffect(() => {
     if (!accessToken) {
-      router.replace("/dashboard/login");
+      router.replace("/login");
     }
   }, [accessToken, router]);
 
