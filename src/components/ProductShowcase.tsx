@@ -164,7 +164,7 @@ export default function ProductShowcase({
   const [selectedProduct, setSelectedProduct] = useState<LandingProduct | null>(null);
   const titleRef = useScrollReveal<HTMLDivElement>("up");
   const displayProducts = products.slice(0, 4);
-  if (displayProducts.length < 4) return null;
+  const hasProducts = displayProducts.length > 0;
 
   return (
     <section id="collection" className="relative py-32 md:py-48 px-6 md:px-12 lg:px-20">
@@ -184,20 +184,17 @@ export default function ProductShowcase({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 auto-rows-auto">
-        <div className="lg:col-span-1 lg:row-span-2 lg:mt-12">
-          <ProductCard product={displayProducts[0]} index={0} onClick={() => setSelectedProduct(displayProducts[0])} />
+      {!hasProducts ? (
+        <p className="text-sm text-muted-foreground">No products available yet</p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 auto-rows-auto">
+          {displayProducts.map((product, index) => (
+            <div key={`${product.name}-${index}`} className="lg:col-span-1">
+              <ProductCard product={product} index={index} onClick={() => setSelectedProduct(product)} />
+            </div>
+          ))}
         </div>
-        <div className="lg:col-span-1">
-          <ProductCard product={displayProducts[1]} index={1} onClick={() => setSelectedProduct(displayProducts[1])} />
-        </div>
-        <div className="lg:col-span-1 lg:mt-24">
-          <ProductCard product={displayProducts[2]} index={2} onClick={() => setSelectedProduct(displayProducts[2])} />
-        </div>
-        <div className="lg:col-span-1 lg:col-start-2 lg:-mt-8">
-          <ProductCard product={displayProducts[3]} index={3} onClick={() => setSelectedProduct(displayProducts[3])} />
-        </div>
-      </div>
+      )}
 
       <ProductModal
         product={selectedProduct}
