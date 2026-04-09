@@ -6,28 +6,32 @@ const AUTH_COOKIE = "lllarik_dashboard_token";
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (!pathname.startsWith("/dashboard")) {
+  const isLoginPage = pathname === "/login";
+  const isDashboard = pathname.startsWith("/dashboard");
+  const token = request.cookies.get(AUTH_COOKIE)?.value;
+
+  if (isLoginPage) {
+    if (token) {
+      const overviewUrl = request.nextUrl.clone();
+      overviewUrl.pathname = "/dashboard/overview";
+      return NextResponse.redirect(overviewUrl);
+    }
     return NextResponse.next();
   }
 
-  const isLoginPage = pathname === "/dashboard/login";
-  const token = request.cookies.get(AUTH_COOKIE)?.value;
-
-  if (!token && !isLoginPage) {
-    const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = "/dashboard/login";
-    return NextResponse.redirect(loginUrl);
+  if (!isDashboard) {
+    return NextResponse.next();
   }
 
-  if (token && isLoginPage) {
-    const overviewUrl = request.nextUrl.clone();
-    overviewUrl.pathname = "/dashboard/overview";
-    return NextResponse.redirect(overviewUrl);
+  if (!token) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/dashboard/:path*", "/login"],
 };

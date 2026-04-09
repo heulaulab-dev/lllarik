@@ -1,5 +1,3 @@
-"use client";
-
 import Hero from "@/components/Hero";
 import Narrative from "@/components/Narrative";
 import ProductShowcase from "@/components/ProductShowcase";
@@ -8,11 +6,13 @@ import SocialProof from "@/components/SocialProof";
 import CraftPhilosophy from "@/components/CraftPhilosophy";
 import Conversion from "@/components/Conversion";
 import Footer from "@/components/Footer";
-import { useLandingContentService } from "@/lib/landingContentClient";
+import type { LandingContent } from "@/lib/landingContent";
 
-export default function LandingSections() {
-  const { content } = useLandingContentService();
+type LandingSectionsProps = {
+  content: LandingContent;
+};
 
+export default function LandingSections({ content }: LandingSectionsProps) {
   return (
     <main>
       <Hero content={content.hero} />

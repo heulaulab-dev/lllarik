@@ -57,6 +57,37 @@ export type LandingContent = {
   lookbookSpreads: LookbookSpread[];
 };
 
+export function normalizeLandingImageSrc(raw: string): string {
+  const value = raw.trim();
+  if (!value) return "";
+
+  if (value.includes("/_next/image?")) {
+    try {
+      const parsed = new URL(value, "http://localhost");
+      const nextImageTarget = parsed.searchParams.get("url");
+      if (nextImageTarget) {
+        const decoded = decodeURIComponent(nextImageTarget).trim();
+        if (decoded.startsWith("http://") || decoded.startsWith("https://") || decoded.startsWith("/")) {
+          return decoded;
+        }
+        return `/${decoded}`;
+      }
+    } catch {
+      return "";
+    }
+  }
+
+  if (value.startsWith("http://") || value.startsWith("https://") || value.startsWith("/")) {
+    return value;
+  }
+
+  if (value.startsWith("products/")) {
+    return `/${value}`;
+  }
+
+  return "";
+}
+
 export const defaultProducts: LandingProduct[] = [
   {
     name: "Solen",
@@ -173,12 +204,18 @@ const getCopy = (copy: Record<string, string> | undefined, key: string, fallback
   copy?.[key] && copy[key].trim().length > 0 ? copy[key] : fallback;
 
 export async function getLandingContent(): Promise<LandingContent> {
+  const emptyProductContent: LandingContent = {
+    ...defaultLandingContent,
+    products: [],
+    lookbookSpreads: [],
+  };
+
   const baseUrl = process.env.CONTENT_API_URL?.trim();
-  if (!baseUrl) return defaultLandingContent;
+  if (!baseUrl) return emptyProductContent;
 
   try {
     const response = await fetch(`${baseUrl}/api/v1/public/content`, { cache: "no-store" });
-    if (!response.ok) return defaultLandingContent;
+    if (!response.ok) return emptyProductContent;
     const data = (await response.json()) as PublicApiResponse;
     const copy = data.copy;
 
@@ -196,11 +233,11 @@ export async function getLandingContent(): Promise<LandingContent> {
           material: String(item.material ?? item.Material ?? ""),
           story: String(item.story ?? item.Story ?? ""),
           tags,
-          image: String(item.image_url ?? item.ImageURL ?? item.image ?? ""),
+          image: normalizeLandingImageSrc(String(item.image_url ?? item.ImageURL ?? item.image ?? "")),
         } satisfies LandingProduct;
       }).filter((p) => p.name && p.image) ?? [];
 
-    const products = mappedProducts.length > 0 ? mappedProducts : defaultLandingContent.products;
+    const products = mappedProducts;
 
     return {
       hero: {
@@ -256,6 +293,6 @@ export async function getLandingContent(): Promise<LandingContent> {
       })),
     };
   } catch {
-    return defaultLandingContent;
+    return emptyProductContent;
   }
 }
