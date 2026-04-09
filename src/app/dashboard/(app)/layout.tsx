@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   BarChart3,
   Boxes,
+  Search,
   FileText,
   LayoutDashboard,
   LogOut,
@@ -25,6 +26,7 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarRail,
+  SidebarSeparator,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
@@ -56,7 +58,10 @@ const items = [
   { href: "/", label: "Landing", icon: BarChart3 },
 ];
 
-export default function DashboardAppLayout({ children }: { children: React.ReactNode }) {
+const mainItems = items.slice(0, 4);
+const secondaryItems = items.slice(4);
+
+export default function DashboardAppLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
   const router = useRouter();
   const accessToken = useDashboardAuthStore((s) => s.accessToken);
@@ -73,25 +78,57 @@ export default function DashboardAppLayout({ children }: { children: React.React
   return (
     <SidebarProvider>
       <Sidebar variant="inset">
-        <SidebarHeader>
-          <Link
-            href="/dashboard/overview"
-            className={cn(buttonVariants({ variant: "outline" }), "justify-start")}
-          >
-            LLLARIK Dashboard
+        <SidebarHeader className="gap-1.5 p-3">
+          <Link href="/dashboard/overview" className="rounded-md border bg-white px-3 py-2 text-sm">
+            <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Workspace</div>
+            <div className="truncate text-sm font-medium text-foreground">LLLARIK Dashboard</div>
           </Link>
+          <div
+            data-testid="dashboard-sidebar-search"
+            className="flex items-center gap-2 rounded-md border bg-white px-2.5 py-2 text-xs text-muted-foreground"
+          >
+            <Search className="size-3.5" />
+            <span>Search</span>
+            <kbd className="ml-auto rounded border bg-muted px-1.5 py-0.5 text-[10px]">/</kbd>
+          </div>
         </SidebarHeader>
         <SidebarContent>
-          <SidebarGroup>
-            <SidebarGroupLabel>Content Management</SidebarGroupLabel>
+          <SidebarGroup className="pt-0">
+            <SidebarGroupLabel className="h-7 px-2 text-[11px] font-semibold uppercase tracking-wide">
+              Main
+            </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {items.map((item) => (
+                {mainItems.map((item) => (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton
                       render={<Link href={item.href} />}
                       isActive={pathname === item.href}
                       tooltip={item.label}
+                      className="h-8 px-2"
+                    >
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+          <SidebarSeparator />
+          <SidebarGroup className="pt-1">
+            <SidebarGroupLabel className="h-7 px-2 text-[11px] font-semibold uppercase tracking-wide">
+              Secondary
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {secondaryItems.map((item) => (
+                  <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton
+                      render={<Link href={item.href} />}
+                      isActive={pathname === item.href}
+                      tooltip={item.label}
+                      className="h-8 px-2"
                     >
                       <item.icon />
                       <span>{item.label}</span>
@@ -102,18 +139,31 @@ export default function DashboardAppLayout({ children }: { children: React.React
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
-        <SidebarFooter>
-          <Button
-            variant="ghost"
-            className="justify-start"
-            onClick={() => {
-              logout.mutate();
-              router.push("/dashboard/login");
-            }}
+        <SidebarFooter className="p-3 pt-2">
+          <div
+            data-testid="dashboard-sidebar-account"
+            className="flex items-center gap-2 rounded-md border bg-white px-2 py-2"
           >
-            <LogOut />
-            Sign out
-          </Button>
+            <Avatar className="size-7">
+              <AvatarFallback>AD</AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-medium leading-tight">Admin</p>
+              <p className="truncate text-[11px] text-muted-foreground leading-tight">dashboard@lllarik.com</p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs"
+              onClick={() => {
+                logout.mutate();
+                router.push("/dashboard/login");
+              }}
+            >
+              <LogOut className="size-3.5" />
+              Sign out
+            </Button>
+          </div>
         </SidebarFooter>
         <SidebarRail />
       </Sidebar>

@@ -1,6 +1,6 @@
 import React from "react";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import DashboardAppLayout from "./layout";
 
 const mockPush = vi.fn();
@@ -61,6 +61,7 @@ describe("dashboard app sidebar regression coverage", () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+    cleanup();
   });
 
   it("keeps existing primary nav labels", () => {
