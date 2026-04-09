@@ -1,11 +1,12 @@
 import React from "react";
-import { beforeAll, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { render, screen, within } from "@testing-library/react";
 import DashboardAppLayout from "./layout";
 
 const mockPush = vi.fn();
 const mockReplace = vi.fn();
 const mockLogoutMutate = vi.fn();
+const originalMatchMedia = globalThis.matchMedia;
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/dashboard/overview",
@@ -51,18 +52,33 @@ describe("dashboard app sidebar regression coverage", () => {
     });
   });
 
+  afterAll(() => {
+    Object.defineProperty(globalThis, "matchMedia", {
+      writable: true,
+      value: originalMatchMedia,
+    });
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("keeps existing primary nav labels", () => {
-    render(
+    const { container } = render(
       <DashboardAppLayout>
         <div>Dashboard page body</div>
       </DashboardAppLayout>,
     );
 
-    expect(screen.getAllByText("Overview").length).toBeGreaterThan(0);
-    expect(screen.getByText("Products")).toBeInTheDocument();
-    expect(screen.getByText("Copy")).toBeInTheDocument();
-    expect(screen.getByText("Releases")).toBeInTheDocument();
-    expect(screen.getByText("Landing")).toBeInTheDocument();
+    const sidebar = container.querySelector('[data-slot="sidebar"]');
+    expect(sidebar).not.toBeNull();
+
+    const scoped = within(sidebar as HTMLElement);
+    expect(scoped.getByRole("link", { name: "Overview" })).toHaveAttribute("href", "/dashboard/overview");
+    expect(scoped.getByRole("link", { name: "Products" })).toHaveAttribute("href", "/dashboard/products");
+    expect(scoped.getByRole("link", { name: "Copy" })).toHaveAttribute("href", "/dashboard/copy");
+    expect(scoped.getByRole("link", { name: "Releases" })).toHaveAttribute("href", "/dashboard/releases");
+    expect(scoped.getByRole("link", { name: "Landing" })).toHaveAttribute("href", "/");
   });
 
   it("renders the sidebar search chrome marker", () => {
