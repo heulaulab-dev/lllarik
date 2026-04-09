@@ -4,6 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import Providers from "@/components/Providers";
 import { Toaster } from "@/components/ui/sonner";
+import SmoothScroll from "@/components/SmoothScroll";
 
 const spaceMono = Space_Mono({
   variable: "--font-space-mono",
@@ -59,6 +60,7 @@ export default function RootLayout({
     <html lang="en" className={cn("h-full antialiased", spaceMono.variable)}>
       <body className="min-h-full flex flex-col">
         <Providers>
+          <SmoothScroll />
           {children}
           <Toaster />
         </Providers>

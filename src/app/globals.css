@@ -98,7 +98,7 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
   overflow-x: hidden;
 }
 
@@ -185,9 +185,15 @@ body::before {
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-::-webkit-scrollbar { width: 6px; }
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #b6b6b6 transparent;
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #0A0A0A; border-radius: 0; }
+::-webkit-scrollbar-thumb { background: #b6b6b6; border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #8f8f8f; }
 
 .scroll-hidden {
   opacity: 0;

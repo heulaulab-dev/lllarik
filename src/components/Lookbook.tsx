@@ -43,6 +43,8 @@ function LookbookSpread({
             src={spread.image}
             alt={`${spread.title} — LLLARIK.id Lookbook`}
             fill
+            loading="lazy"
+            quality={65}
             sizes="(max-width: 1024px) 100vw, 58vw"
             className="object-cover"
           />
