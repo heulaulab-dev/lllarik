@@ -104,7 +104,7 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
             type="button"
             aria-label="Search dashboard"
             aria-disabled="true"
-            disabled
+            onClick={(event) => event.preventDefault()}
             data-testid="dashboard-sidebar-search"
             className="flex w-full items-center gap-2 rounded-md border bg-white px-2.5 py-2 text-xs text-muted-foreground opacity-70"
           >
