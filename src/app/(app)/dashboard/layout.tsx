@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   LogOut,
   Megaphone,
+  Settings,
   Users,
 } from "lucide-react";
 import {
@@ -47,7 +48,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useDashboardAuthStore } from "@/lib/dashboardStore";
 import { useDashboardLogout, useDashboardMe } from "@/lib/dashboardService";
@@ -59,6 +61,7 @@ const items = [
   { href: "/dashboard/products", label: "Products", icon: Boxes, group: "main" },
   { href: "/dashboard/copy", label: "Copy", icon: FileText, group: "main" },
   { href: "/dashboard/releases", label: "Releases", icon: Megaphone, group: "secondary" },
+  { href: "/dashboard/settings", label: "Settings", icon: Settings, group: "secondary" },
   { href: "/dashboard/users", label: "Users", icon: Users, group: "secondary" },
   { href: "/", label: "Landing", icon: BarChart3, group: "secondary" },
 ];
@@ -97,6 +100,7 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
   const showUsersNav = !meLoading && me?.role === "admin";
   const displayEmail = me?.email ?? "";
   const displayName = me?.name?.trim() ?? "";
+  const [searchQuery, setSearchQuery] = useState("");
   const displayInitials = displayName
     ? displayName
         .split(/\s+/)
@@ -107,6 +111,20 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
         .toUpperCase()
     : accountInitials(displayEmail);
   const roleLabel = me?.role ? me.role.charAt(0).toUpperCase() + me.role.slice(1) : "…";
+  const normalizedSearch = searchQuery.trim().toLowerCase();
+
+  const filteredItemsByGroup = useMemo(() => {
+    return groupOrder.reduce<Record<SidebarGroupKey, (typeof items)[number][]>>(
+      (acc, group) => {
+        const visibleItems = itemsByGroup[group].filter((item) => item.href !== "/dashboard/users" || showUsersNav);
+        acc[group] = normalizedSearch
+          ? visibleItems.filter((item) => item.label.toLowerCase().includes(normalizedSearch))
+          : visibleItems;
+        return acc;
+      },
+      { main: [], secondary: [] },
+    );
+  }, [normalizedSearch, showUsersNav]);
 
   const handleSignOut = () => {
     logout
@@ -134,18 +152,20 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
             <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Workspace</div>
             <div className="truncate text-sm font-medium text-foreground">LLLARIK Dashboard</div>
           </Link>
-          <button
-            type="button"
-            aria-label="Search dashboard"
-            aria-disabled="true"
-            onClick={(event) => event.preventDefault()}
-            data-testid="dashboard-sidebar-search"
-            className="flex w-full items-center gap-2 rounded-md border bg-white px-2.5 py-2 text-xs text-muted-foreground opacity-70"
-          >
-            <Search className="size-3.5" />
-            <span>Search</span>
-            <kbd className="ml-auto rounded border bg-muted px-1.5 py-0.5 text-[10px]">/</kbd>
-          </button>
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              aria-label="Search dashboard"
+              data-testid="dashboard-sidebar-search"
+              placeholder="Search menu..."
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              className="h-8 bg-white pl-8 pr-8 text-xs"
+            />
+            <kbd className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+              /
+            </kbd>
+          </div>
         </SidebarHeader>
         <SidebarContent>
           {groupOrder.map((group, index) => (
@@ -157,9 +177,7 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {itemsByGroup[group]
-                      .filter((item) => item.href !== "/dashboard/users" || showUsersNav)
-                      .map((item) => (
+                    {filteredItemsByGroup[group].map((item) => (
                       <SidebarMenuItem key={item.href}>
                         <SidebarMenuButton
                           render={<Link href={item.href} />}
@@ -172,6 +190,11 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
                         </SidebarMenuButton>
                       </SidebarMenuItem>
                     ))}
+                    {normalizedSearch && filteredItemsByGroup[group].length === 0 ? (
+                      <SidebarMenuItem>
+                        <div className="px-2 py-1 text-xs text-muted-foreground">No matches</div>
+                      </SidebarMenuItem>
+                    ) : null}
                   </SidebarMenu>
                 </SidebarGroupContent>
               </SidebarGroup>
@@ -181,38 +204,37 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
         <SidebarFooter className="p-3 pt-2">
           <div
             data-testid="dashboard-sidebar-account"
-            className="flex items-center gap-2 rounded-md border bg-white px-2 py-2"
+            className="rounded-xl border bg-white px-2.5 py-2.5 shadow-xs"
           >
-            <Avatar className="size-7">
-              <AvatarFallback title={displayEmail}>{meLoading ? "…" : displayInitials}</AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-medium leading-tight" title={displayName || displayEmail}>
-                {meLoading ? "…" : displayName || displayEmail || "Signed in"}
-              </p>
-              <p className="truncate text-[11px] text-muted-foreground leading-tight">
-                {meLoading ? "Loading…" : roleLabel}
-              </p>
+            <div className="flex items-center gap-2.5">
+              <Avatar className="size-8 border">
+                <AvatarFallback title={displayEmail}>{meLoading ? "…" : displayInitials}</AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-semibold leading-tight" title={displayName || displayEmail}>
+                  {meLoading ? "…" : displayName || "Signed in"}
+                </p>
+                <p className="truncate text-[11px] text-muted-foreground leading-tight" title={displayEmail}>
+                  {meLoading ? "Loading…" : displayEmail || "No email"}
+                </p>
+              </div>
+              <span className="rounded-full border px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                {meLoading ? "…" : roleLabel}
+              </span>
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <span className={cn(buttonVariants({ variant: "ghost", size: "icon" }), "h-7 w-7")} aria-label="Account actions">
+                    <MoreHorizontal className="size-3.5" />
+                  </span>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="size-3.5" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 px-2 text-xs"
-              onClick={handleSignOut}
-            >
-              <LogOut className="size-3.5" />
-              Sign out
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              aria-label="More account options"
-              disabled
-              className="h-7 w-7"
-            >
-              <MoreHorizontal className="size-3.5" />
-            </Button>
           </div>
         </SidebarFooter>
         <SidebarRail />

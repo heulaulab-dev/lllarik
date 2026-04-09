@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { create } from "zustand";
 import { useQuery } from "@tanstack/react-query";
-import { defaultLandingContent, type LandingContent, type LandingProduct } from "@/lib/landingContent";
+import { defaultLandingContent, normalizeLandingImageSrc, type LandingContent, type LandingProduct } from "@/lib/landingContent";
 
 type LandingState = {
   content: LandingContent;
@@ -43,7 +43,7 @@ const mapResponse = (data: PublicApiResponse): LandingContent => {
           material: String(item.material ?? item.Material ?? ""),
           story: String(item.story ?? item.Story ?? ""),
           tags,
-          image: String(item.image_url ?? item.ImageURL ?? item.image ?? ""),
+          image: normalizeLandingImageSrc(String(item.image_url ?? item.ImageURL ?? item.image ?? "")),
         } satisfies LandingProduct;
       })
       .filter((p) => p.name && p.image) ?? [];

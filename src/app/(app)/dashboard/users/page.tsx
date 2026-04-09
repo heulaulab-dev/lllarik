@@ -6,6 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -15,8 +24,22 @@ import {
 } from "@/components/ui/table";
 import { useDashboardMe, useDashboardUsers } from "@/lib/dashboardService";
 import { cn } from "@/lib/utils";
+import { z } from "zod";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const Roles = ["admin", "editor", "viewer"] as const;
+const createUserSchema = z
+  .object({
+    name: z.string().trim().min(2, "Name must be at least 2 characters."),
+    email: z.string().trim().email("Enter a valid email address."),
+    password: z.string().min(8, "Password must be at least 8 characters."),
+    confirmPassword: z.string(),
+    role: z.enum(Roles),
+  })
+  .refine((v) => v.password === v.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "Passwords do not match.",
+  });
 
 export default function DashboardUsersPage() {
   const router = useRouter();
@@ -26,32 +49,33 @@ export default function DashboardUsersPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [touched, setTouched] = useState({ email: false, password: false, confirm: false });
+  const [role, setRole] = useState<(typeof Roles)[number]>("admin");
+  const [submittedOnce, setSubmittedOnce] = useState(false);
 
   const nameTrim = name.trim();
   const emailTrim = email.trim();
   const validation = useMemo(() => {
-    const nameOk = nameTrim.length > 1;
-    const emailOk = EMAIL_RE.test(emailTrim);
-    const pwdLen = password.length;
-    const pwdOk = pwdLen >= 8;
-    const matchOk = password.length > 0 && password === confirmPassword;
-    const messages: string[] = [];
-    if (nameTrim.length > 0 && !nameOk) {
-      messages.push("Name must be at least 2 characters.");
-    }
-    if (touched.email && emailTrim.length > 0 && !emailOk) {
-      messages.push("Enter a valid email address.");
-    }
-    if (touched.password && password.length > 0 && !pwdOk) {
-      messages.push("Password must be at least 8 characters.");
-    }
-    if (touched.confirm && confirmPassword.length > 0 && !matchOk) {
-      messages.push("Passwords do not match.");
-    }
-    const canSubmit = nameOk && emailOk && pwdOk && matchOk;
-    return { nameOk, emailOk, pwdOk, matchOk, canSubmit, messages };
-  }, [nameTrim, emailTrim, password, confirmPassword, touched]);
+    const result = createUserSchema.safeParse({
+      name: nameTrim,
+      email: emailTrim,
+      password,
+      confirmPassword,
+      role,
+    });
+
+    const fieldErrors = result.success ? {} : result.error.flatten().fieldErrors;
+    const messages = submittedOnce
+      ? Object.values(fieldErrors)
+          .flat()
+          .filter(Boolean)
+      : [];
+
+    return {
+      canSubmit: result.success,
+      fieldErrors,
+      messages,
+    };
+  }, [nameTrim, emailTrim, password, confirmPassword, role, submittedOnce]);
 
   if (meLoading) {
     return <p className="text-sm text-muted-foreground">Loading…</p>;
@@ -92,8 +116,8 @@ export default function DashboardUsersPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Aisyah Putri"
-                aria-invalid={nameTrim.length > 0 && !validation.nameOk}
-                className={cn(nameTrim.length > 0 && !validation.nameOk && "border-destructive")}
+                aria-invalid={submittedOnce && !!validation.fieldErrors?.name?.[0]}
+                className={cn(submittedOnce && !!validation.fieldErrors?.name?.[0] && "border-destructive")}
               />
               <p className="text-[11px] text-muted-foreground">Shown in the dashboard header and account menu.</p>
             </div>
@@ -107,14 +131,28 @@ export default function DashboardUsersPage() {
                 autoComplete="off"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                onBlur={() => setTouched((t) => ({ ...t, email: true }))}
                 placeholder="name@yourcompany.com"
-                aria-invalid={touched.email && emailTrim.length > 0 && !validation.emailOk}
-                className={cn(
-                  touched.email && emailTrim.length > 0 && !validation.emailOk && "border-destructive",
-                )}
+                aria-invalid={submittedOnce && !!validation.fieldErrors?.email?.[0]}
+                className={cn(submittedOnce && !!validation.fieldErrors?.email?.[0] && "border-destructive")}
               />
               <p className="text-[11px] text-muted-foreground">Used as their login username; must be unique.</p>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Role</label>
+              <Select value={role} onValueChange={(value) => setRole(value as (typeof Roles)[number])}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>Roles</SelectLabel>
+                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="editor">Editor</SelectItem>
+                    <SelectItem value="viewer">Viewer</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-muted-foreground">Controls access based on RBAC.</p>
             </div>
             <div className="space-y-2">
               <label htmlFor="new-admin-password" className="text-sm font-medium text-foreground">
@@ -126,12 +164,9 @@ export default function DashboardUsersPage() {
                 autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                onBlur={() => setTouched((t) => ({ ...t, password: true }))}
                 placeholder="At least 8 characters"
-                aria-invalid={touched.password && password.length > 0 && !validation.pwdOk}
-                className={cn(
-                  touched.password && password.length > 0 && !validation.pwdOk && "border-destructive",
-                )}
+                aria-invalid={submittedOnce && !!validation.fieldErrors?.password?.[0]}
+                className={cn(submittedOnce && !!validation.fieldErrors?.password?.[0] && "border-destructive")}
               />
               <p className="text-[11px] text-muted-foreground">
                 Share this securely with the new admin; they can continue using it until you rotate credentials.
@@ -147,12 +182,9 @@ export default function DashboardUsersPage() {
                 autoComplete="new-password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                onBlur={() => setTouched((t) => ({ ...t, confirm: true }))}
                 placeholder="Re-enter password"
-                aria-invalid={touched.confirm && confirmPassword.length > 0 && !validation.matchOk}
-                className={cn(
-                  touched.confirm && confirmPassword.length > 0 && !validation.matchOk && "border-destructive",
-                )}
+                aria-invalid={submittedOnce && !!validation.fieldErrors?.confirmPassword?.[0]}
+                className={cn(submittedOnce && !!validation.fieldErrors?.confirmPassword?.[0] && "border-destructive")}
               />
             </div>
           </fieldset>
@@ -167,14 +199,15 @@ export default function DashboardUsersPage() {
             className="w-full"
             disabled={createAdmin.isPending || !validation.canSubmit}
             onClick={async () => {
-              setTouched({ email: true, password: true, confirm: true });
+              setSubmittedOnce(true);
               if (!validation.canSubmit) return;
-              await createAdmin.mutateAsync({ name: nameTrim, email: emailTrim, password });
+              await createAdmin.mutateAsync({ name: nameTrim, email: emailTrim, password, role });
               setName("");
               setEmail("");
               setPassword("");
               setConfirmPassword("");
-              setTouched({ email: false, password: false, confirm: false });
+              setRole("admin");
+              setSubmittedOnce(false);
             }}
           >
             {createAdmin.isPending ? "Creating…" : "Create admin account"}

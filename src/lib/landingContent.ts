@@ -57,6 +57,37 @@ export type LandingContent = {
   lookbookSpreads: LookbookSpread[];
 };
 
+export function normalizeLandingImageSrc(raw: string): string {
+  const value = raw.trim();
+  if (!value) return "";
+
+  if (value.includes("/_next/image?")) {
+    try {
+      const parsed = new URL(value, "http://localhost");
+      const nextImageTarget = parsed.searchParams.get("url");
+      if (nextImageTarget) {
+        const decoded = decodeURIComponent(nextImageTarget).trim();
+        if (decoded.startsWith("http://") || decoded.startsWith("https://") || decoded.startsWith("/")) {
+          return decoded;
+        }
+        return `/${decoded}`;
+      }
+    } catch {
+      return "";
+    }
+  }
+
+  if (value.startsWith("http://") || value.startsWith("https://") || value.startsWith("/")) {
+    return value;
+  }
+
+  if (value.startsWith("products/")) {
+    return `/${value}`;
+  }
+
+  return "";
+}
+
 export const defaultProducts: LandingProduct[] = [
   {
     name: "Solen",
@@ -196,7 +227,7 @@ export async function getLandingContent(): Promise<LandingContent> {
           material: String(item.material ?? item.Material ?? ""),
           story: String(item.story ?? item.Story ?? ""),
           tags,
-          image: String(item.image_url ?? item.ImageURL ?? item.image ?? ""),
+          image: normalizeLandingImageSrc(String(item.image_url ?? item.ImageURL ?? item.image ?? "")),
         } satisfies LandingProduct;
       }).filter((p) => p.name && p.image) ?? [];
 
