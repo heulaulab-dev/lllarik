@@ -2,6 +2,9 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDashboardAuthStore } from "@/lib/dashboardStore";
+import { apiRequest } from "@/lib/http/client";
+import type { NormalizedApiError } from "@/lib/http/errors";
+import { notifyApiError } from "@/lib/http/notify";
 
 export type DashboardProduct = {
   id?: string;
@@ -22,47 +25,22 @@ export type CopyItem = {
   value: string;
 };
 
-type ApiOptions = {
-  method?: "GET" | "POST" | "PUT" | "DELETE";
-  token?: string;
-  body?: unknown;
-};
-
-const getBaseUrl = () => process.env.NEXT_PUBLIC_CONTENT_API_URL?.trim() ?? "http://localhost:8080";
-
-async function apiFetch<T>(path: string, options: ApiOptions = {}): Promise<T> {
-  const response = await fetch(`${getBaseUrl()}${path}`, {
-    method: options.method ?? "GET",
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
-    },
-    body: options.body ? JSON.stringify(options.body) : undefined,
-  });
-
-  if (!response.ok) {
-    const message = await response.text();
-    throw new Error(message || "request failed");
-  }
-  return response.json() as Promise<T>;
-}
-
 export function useDashboardOverview() {
-  const token = useDashboardAuthStore((s) => s.token);
+  const accessToken = useDashboardAuthStore((s) => s.accessToken);
   const releases = useQuery({
     queryKey: ["dashboard-releases"],
-    queryFn: () => apiFetch<{ items: Array<{ id: string; releasedAt: string }> }>("/api/v1/releases", { token }),
-    enabled: !!token,
+    queryFn: () => apiRequest<{ items: Array<{ id: string; releasedAt: string }> }>({ url: "/api/v1/releases" }),
+    enabled: !!accessToken,
   });
   const products = useQuery({
     queryKey: ["dashboard-products-draft-count"],
-    queryFn: () => apiFetch<{ items: unknown[] }>("/api/v1/content/products?state=draft", { token }),
-    enabled: !!token,
+    queryFn: () => apiRequest<{ items: unknown[] }>({ url: "/api/v1/content/products?state=draft" }),
+    enabled: !!accessToken,
   });
   const copy = useQuery({
     queryKey: ["dashboard-copy-draft-count"],
-    queryFn: () => apiFetch<{ items: unknown[] }>("/api/v1/content/copy?state=draft", { token }),
-    enabled: !!token,
+    queryFn: () => apiRequest<{ items: unknown[] }>({ url: "/api/v1/content/copy?state=draft" }),
+    enabled: !!accessToken,
   });
 
   return {
@@ -74,24 +52,26 @@ export function useDashboardOverview() {
 }
 
 export function useDashboardProducts() {
-  const token = useDashboardAuthStore((s) => s.token);
+  const accessToken = useDashboardAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
 
   const productsQuery = useQuery({
-    queryKey: ["dashboard-products", token],
-    queryFn: () => apiFetch<{ items: DashboardProduct[] }>("/api/v1/content/products?state=draft", { token }),
-    enabled: !!token,
+    queryKey: ["dashboard-products", accessToken],
+    queryFn: () => apiRequest<{ items: DashboardProduct[] }>({ url: "/api/v1/content/products?state=draft" }),
+    enabled: !!accessToken,
   });
 
   const createProduct = useMutation({
     mutationFn: (payload: DashboardProduct) =>
-      apiFetch("/api/v1/content/products", { method: "POST", token, body: payload }),
+      apiRequest({ url: "/api/v1/content/products", method: "POST", data: payload }),
+    onError: (error) => notifyApiError(error as NormalizedApiError),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["dashboard-products"] }),
   });
 
   const updateProduct = useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: DashboardProduct }) =>
-      apiFetch(`/api/v1/content/products/${id}/draft`, { method: "PUT", token, body: payload }),
+      apiRequest({ url: `/api/v1/content/products/${id}/draft`, method: "PUT", data: payload }),
+    onError: (error) => notifyApiError(error as NormalizedApiError),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["dashboard-products"] }),
   });
 
@@ -104,22 +84,23 @@ export function useDashboardProducts() {
 }
 
 export function useDashboardCopy() {
-  const token = useDashboardAuthStore((s) => s.token);
+  const accessToken = useDashboardAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
 
   const copyQuery = useQuery({
-    queryKey: ["dashboard-copy", token],
-    queryFn: () => apiFetch<{ items: CopyItem[] }>("/api/v1/content/copy?state=draft", { token }),
-    enabled: !!token,
+    queryKey: ["dashboard-copy", accessToken],
+    queryFn: () => apiRequest<{ items: CopyItem[] }>({ url: "/api/v1/content/copy?state=draft" }),
+    enabled: !!accessToken,
   });
 
   const updateCopy = useMutation({
     mutationFn: (payload: CopyItem) =>
-      apiFetch(`/api/v1/content/copy/${encodeURIComponent(payload.key)}/draft`, {
+      apiRequest({
+        url: `/api/v1/content/copy/${encodeURIComponent(payload.key)}/draft`,
         method: "PUT",
-        token,
-        body: { group: payload.group, value: payload.value },
+        data: { group: payload.group, value: payload.value },
       }),
+    onError: (error) => notifyApiError(error as NormalizedApiError),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["dashboard-copy"] }),
   });
 
@@ -131,16 +112,17 @@ export function useDashboardCopy() {
 }
 
 export function useDashboardReleases() {
-  const token = useDashboardAuthStore((s) => s.token);
+  const accessToken = useDashboardAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
   const releasesQuery = useQuery({
-    queryKey: ["dashboard-releases", token],
-    queryFn: () => apiFetch<{ items: Array<{ id: string; releasedAt: string; note?: string }> }>("/api/v1/releases", { token }),
-    enabled: !!token,
+    queryKey: ["dashboard-releases", accessToken],
+    queryFn: () => apiRequest<{ items: Array<{ id: string; releasedAt: string; note?: string }> }>({ url: "/api/v1/releases" }),
+    enabled: !!accessToken,
   });
 
   const publish = useMutation({
-    mutationFn: (note: string) => apiFetch("/api/v1/publish", { method: "POST", token, body: { note } }),
+    mutationFn: (note: string) => apiRequest({ url: "/api/v1/publish", method: "POST", data: { note } }),
+    onError: (error) => notifyApiError(error as NormalizedApiError),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dashboard-releases"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-products"] });
@@ -156,11 +138,32 @@ export function useDashboardReleases() {
 }
 
 export function useDashboardLogin() {
-  const setToken = useDashboardAuthStore((s) => s.setToken);
+  const setTokens = useDashboardAuthStore((s) => s.setTokens);
 
   return useMutation({
     mutationFn: (payload: { email: string; password: string }) =>
-      apiFetch<{ token: string }>("/api/v1/auth/login", { method: "POST", body: payload }),
-    onSuccess: (data) => setToken(data.token),
+      apiRequest<{ accessToken: string; refreshToken: string }>({
+        url: "/api/v1/auth/login",
+        method: "POST",
+        data: payload,
+      }),
+    onSuccess: (data) => setTokens(data),
+    onError: (error) => notifyApiError(error as NormalizedApiError),
+  });
+}
+
+export function useDashboardLogout() {
+  const refreshToken = useDashboardAuthStore((s) => s.refreshToken);
+  const clearTokens = useDashboardAuthStore((s) => s.clearTokens);
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!refreshToken) return;
+      await apiRequest({ url: "/api/v1/auth/logout", method: "POST", data: { refreshToken } });
+    },
+    onError: (error) => notifyApiError(error as NormalizedApiError),
+    onSettled: () => {
+      clearTokens();
+    },
   });
 }

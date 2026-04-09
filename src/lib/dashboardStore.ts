@@ -4,9 +4,11 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 type DashboardAuthState = {
-  token: string;
-  setToken: (token: string) => void;
-  clearToken: () => void;
+  accessToken: string;
+  refreshToken: string;
+  setTokens: (tokens: { accessToken: string; refreshToken: string }) => void;
+  setAccessToken: (accessToken: string) => void;
+  clearTokens: () => void;
 };
 
 const AUTH_COOKIE = "lllarik_dashboard_token";
@@ -25,16 +27,33 @@ function clearAuthCookie() {
 export const useDashboardAuthStore = create<DashboardAuthState>()(
   persist(
     (set) => ({
-      token: "",
-      setToken: (token) => {
-        setAuthCookie(token);
-        set({ token });
+      accessToken: "",
+      refreshToken: "",
+      setTokens: ({ accessToken, refreshToken }) => {
+        setAuthCookie(accessToken);
+        set({ accessToken, refreshToken });
       },
-      clearToken: () => {
+      setAccessToken: (accessToken) => {
+        setAuthCookie(accessToken);
+        set({ accessToken });
+      },
+      clearTokens: () => {
         clearAuthCookie();
-        set({ token: "" });
+        set({ accessToken: "", refreshToken: "" });
       },
     }),
-    { name: "lllarik-dashboard-auth" },
+    {
+      name: "lllarik-dashboard-auth",
+      version: 2,
+      migrate: (persistedState, version) => {
+        if (version >= 2) return persistedState as DashboardAuthState;
+        const legacy = persistedState as { token?: string };
+        const accessToken = legacy?.token ?? "";
+        return {
+          accessToken,
+          refreshToken: "",
+        } as Partial<DashboardAuthState>;
+      },
+    },
   ),
 );

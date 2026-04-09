@@ -46,6 +46,7 @@ import {
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useDashboardAuthStore } from "@/lib/dashboardStore";
+import { useDashboardLogout } from "@/lib/dashboardService";
 
 const items = [
   { href: "/dashboard/overview", label: "Overview", icon: LayoutDashboard },
@@ -58,16 +59,16 @@ const items = [
 export default function DashboardAppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const token = useDashboardAuthStore((s) => s.token);
-  const clearToken = useDashboardAuthStore((s) => s.clearToken);
+  const accessToken = useDashboardAuthStore((s) => s.accessToken);
+  const logout = useDashboardLogout();
 
   useEffect(() => {
-    if (!token) {
+    if (!accessToken) {
       router.replace("/dashboard/login");
     }
-  }, [token, router]);
+  }, [accessToken, router]);
 
-  if (!token) return null;
+  if (!accessToken) return null;
 
   return (
     <SidebarProvider>
@@ -106,7 +107,7 @@ export default function DashboardAppLayout({ children }: { children: React.React
             variant="ghost"
             className="justify-start"
             onClick={() => {
-              clearToken();
+              logout.mutate();
               router.push("/dashboard/login");
             }}
           >
@@ -143,7 +144,7 @@ export default function DashboardAppLayout({ children }: { children: React.React
               <DropdownMenuContent align="end">
                 <DropdownMenuItem
                   onClick={() => {
-                    clearToken();
+                    logout.mutate();
                     router.push("/dashboard/login");
                   }}
                 >

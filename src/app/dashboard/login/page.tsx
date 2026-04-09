@@ -10,16 +10,16 @@ import { useDashboardAuthStore } from "@/lib/dashboardStore";
 
 export default function DashboardLoginPage() {
   const router = useRouter();
-  const token = useDashboardAuthStore((s) => s.token);
+  const accessToken = useDashboardAuthStore((s) => s.accessToken);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const login = useDashboardLogin();
 
   useEffect(() => {
-    if (token) {
+    if (accessToken) {
       router.replace("/dashboard/overview");
     }
-  }, [token, router]);
+  }, [accessToken, router]);
 
   return (
     <main className="min-h-screen grid place-items-center p-6">
