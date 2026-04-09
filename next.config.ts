@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
         hostname: "www.lllarik.id",
       },
       {
+        protocol: "https",
+        hostname: "assets.lllarik.id",
+      },
+      {
         protocol: "http",
         hostname: "localhost",
         port: "9000",
