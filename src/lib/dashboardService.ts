@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDashboardAuthStore } from "@/lib/dashboardStore";
 import { apiRequest } from "@/lib/http/client";
-import type { NormalizedApiError } from "@/lib/http/errors";
+import { normalizeApiError } from "@/lib/http/errors";
 import { notifyApiError } from "@/lib/http/notify";
 
 export type DashboardProduct = {
@@ -64,14 +64,14 @@ export function useDashboardProducts() {
   const createProduct = useMutation({
     mutationFn: (payload: DashboardProduct) =>
       apiRequest({ url: "/api/v1/content/products", method: "POST", data: payload }),
-    onError: (error) => notifyApiError(error as NormalizedApiError),
+    onError: (error) => notifyApiError(normalizeApiError(error)),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["dashboard-products"] }),
   });
 
   const updateProduct = useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: DashboardProduct }) =>
       apiRequest({ url: `/api/v1/content/products/${id}/draft`, method: "PUT", data: payload }),
-    onError: (error) => notifyApiError(error as NormalizedApiError),
+    onError: (error) => notifyApiError(normalizeApiError(error)),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["dashboard-products"] }),
   });
 
@@ -100,7 +100,7 @@ export function useDashboardCopy() {
         method: "PUT",
         data: { group: payload.group, value: payload.value },
       }),
-    onError: (error) => notifyApiError(error as NormalizedApiError),
+    onError: (error) => notifyApiError(normalizeApiError(error)),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["dashboard-copy"] }),
   });
 
@@ -122,7 +122,7 @@ export function useDashboardReleases() {
 
   const publish = useMutation({
     mutationFn: (note: string) => apiRequest({ url: "/api/v1/publish", method: "POST", data: { note } }),
-    onError: (error) => notifyApiError(error as NormalizedApiError),
+    onError: (error) => notifyApiError(normalizeApiError(error)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dashboard-releases"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-products"] });
@@ -148,7 +148,7 @@ export function useDashboardLogin() {
         data: payload,
       }),
     onSuccess: (data) => setTokens(data),
-    onError: (error) => notifyApiError(error as NormalizedApiError),
+    onError: (error) => notifyApiError(normalizeApiError(error)),
   });
 }
 
@@ -161,7 +161,7 @@ export function useDashboardLogout() {
       if (!refreshToken) return;
       await apiRequest({ url: "/api/v1/auth/logout", method: "POST", data: { refreshToken } });
     },
-    onError: (error) => notifyApiError(error as NormalizedApiError),
+    onError: (error) => notifyApiError(normalizeApiError(error)),
     onSettled: () => {
       clearTokens();
     },
