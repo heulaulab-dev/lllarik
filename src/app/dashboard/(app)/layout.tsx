@@ -50,22 +50,38 @@ import { cn } from "@/lib/utils";
 import { useDashboardAuthStore } from "@/lib/dashboardStore";
 import { useDashboardLogout } from "@/lib/dashboardService";
 
+type SidebarGroupKey = "main" | "secondary";
+
 const items = [
-  { href: "/dashboard/overview", label: "Overview", icon: LayoutDashboard },
-  { href: "/dashboard/products", label: "Products", icon: Boxes },
-  { href: "/dashboard/copy", label: "Copy", icon: FileText },
-  { href: "/dashboard/releases", label: "Releases", icon: Megaphone },
-  { href: "/", label: "Landing", icon: BarChart3 },
+  { href: "/dashboard/overview", label: "Overview", icon: LayoutDashboard, group: "main" },
+  { href: "/dashboard/products", label: "Products", icon: Boxes, group: "main" },
+  { href: "/dashboard/copy", label: "Copy", icon: FileText, group: "main" },
+  { href: "/dashboard/releases", label: "Releases", icon: Megaphone, group: "main" },
+  { href: "/", label: "Landing", icon: BarChart3, group: "secondary" },
 ];
 
-const mainItems = items.slice(0, 4);
-const secondaryItems = items.slice(4);
+const groupOrder: SidebarGroupKey[] = ["main", "secondary"];
+const groupLabels: Record<SidebarGroupKey, string> = {
+  main: "Main",
+  secondary: "Secondary",
+};
+const itemsByGroup = groupOrder.reduce<Record<SidebarGroupKey, (typeof items)[number][]>>(
+  (acc, group) => {
+    acc[group] = items.filter((item) => item.group === group);
+    return acc;
+  },
+  { main: [], secondary: [] },
+);
 
 export default function DashboardAppLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
   const router = useRouter();
   const accessToken = useDashboardAuthStore((s) => s.accessToken);
   const logout = useDashboardLogout();
+  const handleSignOut = () => {
+    logout.mutate();
+    router.push("/dashboard/login");
+  };
 
   useEffect(() => {
     if (!accessToken) {
@@ -95,51 +111,33 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
           </button>
         </SidebarHeader>
         <SidebarContent>
-          <SidebarGroup className="pt-0">
-            <SidebarGroupLabel className="h-7 px-2 text-[11px] font-semibold uppercase tracking-wide">
-              Main
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {mainItems.map((item) => (
-                  <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton
-                      render={<Link href={item.href} />}
-                      isActive={pathname === item.href}
-                      tooltip={item.label}
-                      className="h-8 px-2"
-                    >
-                      <item.icon />
-                      <span>{item.label}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-          <SidebarSeparator />
-          <SidebarGroup className="pt-1">
-            <SidebarGroupLabel className="h-7 px-2 text-[11px] font-semibold uppercase tracking-wide">
-              Secondary
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {secondaryItems.map((item) => (
-                  <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton
-                      render={<Link href={item.href} />}
-                      isActive={pathname === item.href}
-                      tooltip={item.label}
-                      className="h-8 px-2"
-                    >
-                      <item.icon />
-                      <span>{item.label}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          {groupOrder.map((group, index) => (
+            <div key={group}>
+              {index > 0 && <SidebarSeparator />}
+              <SidebarGroup className={group === "main" ? "pt-0" : "pt-1"}>
+                <SidebarGroupLabel className="h-7 px-2 text-[11px] font-semibold uppercase tracking-wide">
+                  {groupLabels[group]}
+                </SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {itemsByGroup[group].map((item) => (
+                      <SidebarMenuItem key={item.href}>
+                        <SidebarMenuButton
+                          render={<Link href={item.href} />}
+                          isActive={pathname === item.href}
+                          tooltip={item.label}
+                          className="h-8 px-2"
+                        >
+                          <item.icon />
+                          <span>{item.label}</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            </div>
+          ))}
         </SidebarContent>
         <SidebarFooter className="p-3 pt-2">
           <div
@@ -157,10 +155,7 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
               variant="ghost"
               size="sm"
               className="h-7 px-2 text-xs"
-              onClick={() => {
-                logout.mutate();
-                router.push("/dashboard/login");
-              }}
+              onClick={handleSignOut}
             >
               <LogOut className="size-3.5" />
               Sign out
@@ -194,12 +189,7 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
                 </span>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={() => {
-                    logout.mutate();
-                    router.push("/dashboard/login");
-                  }}
-                >
+                <DropdownMenuItem onClick={handleSignOut}>
                   Sign out
                 </DropdownMenuItem>
               </DropdownMenuContent>
