@@ -76,6 +76,18 @@ const itemsByGroup = groupOrder.reduce<Record<SidebarGroupKey, (typeof items)[nu
   { main: [], secondary: [] },
 );
 
+function accountInitials(email: string | undefined) {
+  if (!email) return "—";
+  const local = email.split("@")[0]?.trim() ?? "";
+  const parts = local.split(/[.\-_]/).filter(Boolean);
+  if (parts.length >= 2 && parts[0] && parts[1]) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  const compact = local.replaceAll(/[^a-zA-Z0-9]/g, "");
+  if (compact.length >= 2) return compact.slice(0, 2).toUpperCase();
+  return (local.slice(0, 2) || "?").toUpperCase();
+}
+
 export default function DashboardAppLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const pathname = usePathname();
   const router = useRouter();
@@ -83,9 +95,27 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
   const { data: me, isLoading: meLoading } = useDashboardMe();
   const logout = useDashboardLogout();
   const showUsersNav = !meLoading && me?.role === "admin";
+  const displayEmail = me?.email ?? "";
+  const displayName = me?.name?.trim() ?? "";
+  const displayInitials = displayName
+    ? displayName
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((p) => p[0]!)
+        .join("")
+        .toUpperCase()
+    : accountInitials(displayEmail);
+  const roleLabel = me?.role ? me.role.charAt(0).toUpperCase() + me.role.slice(1) : "…";
+
   const handleSignOut = () => {
-    logout.mutate();
-    router.push("/login");
+    logout
+      .mutateAsync()
+      .finally(() => {
+        useDashboardAuthStore.getState().clearTokens();
+        globalThis.location.assign("/login");
+      })
+      .catch(() => {});
   };
 
   useEffect(() => {
@@ -154,11 +184,15 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
             className="flex items-center gap-2 rounded-md border bg-white px-2 py-2"
           >
             <Avatar className="size-7">
-              <AvatarFallback>AC</AvatarFallback>
+              <AvatarFallback title={displayEmail}>{meLoading ? "…" : displayInitials}</AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-medium leading-tight">Account</p>
-              <p className="truncate text-[11px] text-muted-foreground leading-tight">Manage profile</p>
+              <p className="truncate text-xs font-medium leading-tight" title={displayName || displayEmail}>
+                {meLoading ? "…" : displayName || displayEmail || "Signed in"}
+              </p>
+              <p className="truncate text-[11px] text-muted-foreground leading-tight">
+                {meLoading ? "Loading…" : roleLabel}
+              </p>
             </div>
             <Button
               variant="ghost"
@@ -207,7 +241,7 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
               <DropdownMenuTrigger>
                 <span className={cn(buttonVariants({ variant: "ghost", size: "icon" }))}>
                   <Avatar className="size-8">
-                    <AvatarFallback>AD</AvatarFallback>
+                    <AvatarFallback title={displayEmail}>{meLoading ? "…" : displayInitials}</AvatarFallback>
                   </Avatar>
                 </span>
               </DropdownMenuTrigger>

@@ -28,12 +28,14 @@ export type CopyItem = {
 export type DashboardMe = {
   userId: string;
   email: string;
+  name: string;
   role: string;
 };
 
 export type DashboardUserRow = {
   id: string;
   email: string;
+  name: string;
   role: string;
   isActive: boolean;
   createdAt: string;
@@ -65,7 +67,7 @@ export function useDashboardUsers() {
   });
 
   const createAdmin = useMutation({
-    mutationFn: (payload: { email: string; password: string }) =>
+    mutationFn: (payload: { name: string; email: string; password: string }) =>
       apiRequest<DashboardUserRow>({
         url: "/api/v1/users",
         method: "POST",
