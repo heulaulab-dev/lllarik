@@ -210,7 +210,8 @@ export async function getLandingContent(): Promise<LandingContent> {
     lookbookSpreads: [],
   };
 
-  const baseUrl = process.env.CONTENT_API_URL?.trim();
+  const baseUrl =
+    process.env.CONTENT_API_URL?.trim() || process.env.NEXT_PUBLIC_CONTENT_API_URL?.trim();
   if (!baseUrl) return emptyProductContent;
 
   try {
