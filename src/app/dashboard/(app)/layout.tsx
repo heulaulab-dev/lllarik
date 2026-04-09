@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   BarChart3,
   Boxes,
+  MoreHorizontal,
   Search,
   FileText,
   LayoutDashboard,
@@ -56,7 +57,7 @@ const items = [
   { href: "/dashboard/overview", label: "Overview", icon: LayoutDashboard, group: "main" },
   { href: "/dashboard/products", label: "Products", icon: Boxes, group: "main" },
   { href: "/dashboard/copy", label: "Copy", icon: FileText, group: "main" },
-  { href: "/dashboard/releases", label: "Releases", icon: Megaphone, group: "main" },
+  { href: "/dashboard/releases", label: "Releases", icon: Megaphone, group: "secondary" },
   { href: "/", label: "Landing", icon: BarChart3, group: "secondary" },
 ];
 
@@ -93,7 +94,7 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
 
   return (
     <SidebarProvider>
-      <Sidebar variant="inset">
+      <Sidebar variant="inset" className="border-r bg-[#fafafa]">
         <SidebarHeader className="gap-1.5 p-3">
           <Link href="/dashboard/overview" className="rounded-md border bg-white px-3 py-2 text-sm">
             <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Workspace</div>
@@ -102,8 +103,10 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
           <button
             type="button"
             aria-label="Search dashboard"
+            aria-disabled="true"
+            disabled
             data-testid="dashboard-sidebar-search"
-            className="flex w-full items-center gap-2 rounded-md border bg-white px-2.5 py-2 text-xs text-muted-foreground"
+            className="flex w-full items-center gap-2 rounded-md border bg-white px-2.5 py-2 text-xs text-muted-foreground opacity-70"
           >
             <Search className="size-3.5" />
             <span>Search</span>
@@ -159,6 +162,16 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
             >
               <LogOut className="size-3.5" />
               Sign out
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label="More account options"
+              disabled
+              className="h-7 w-7"
+            >
+              <MoreHorizontal className="size-3.5" />
             </Button>
           </div>
         </SidebarFooter>
