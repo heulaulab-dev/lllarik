@@ -33,6 +33,10 @@ vi.mock("@/lib/dashboardService", () => ({
   useDashboardLogout: () => ({
     mutate: mockLogoutMutate,
   }),
+  useDashboardMe: () => ({
+    data: { userId: "u1", email: "a@example.com", role: "admin" },
+    isLoading: false,
+  }),
 }));
 
 describe("dashboard app sidebar regression coverage", () => {
@@ -79,6 +83,7 @@ describe("dashboard app sidebar regression coverage", () => {
     expect(scoped.getByRole("link", { name: "Products" })).toHaveAttribute("href", "/dashboard/products");
     expect(scoped.getByRole("link", { name: "Copy" })).toHaveAttribute("href", "/dashboard/copy");
     expect(scoped.getByRole("link", { name: "Releases" })).toHaveAttribute("href", "/dashboard/releases");
+    expect(scoped.getByRole("link", { name: "Users" })).toHaveAttribute("href", "/dashboard/users");
     expect(scoped.getByRole("link", { name: "Landing" })).toHaveAttribute("href", "/");
   });
 

@@ -25,6 +25,75 @@ export type CopyItem = {
   value: string;
 };
 
+export type DashboardMe = {
+  userId: string;
+  email: string;
+  role: string;
+};
+
+export type DashboardUserRow = {
+  id: string;
+  email: string;
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+};
+
+export function useDashboardMe() {
+  const accessToken = useDashboardAuthStore((s) => s.accessToken);
+  return useQuery({
+    queryKey: ["dashboard-me", accessToken],
+    queryFn: () => apiRequest<DashboardMe>({ url: "/api/v1/auth/me" }),
+    enabled: !!accessToken,
+  });
+}
+
+export function useDashboardUsers() {
+  const accessToken = useDashboardAuthStore((s) => s.accessToken);
+  const queryClient = useQueryClient();
+
+  const meQuery = useQuery({
+    queryKey: ["dashboard-me", accessToken],
+    queryFn: () => apiRequest<DashboardMe>({ url: "/api/v1/auth/me" }),
+    enabled: !!accessToken,
+  });
+
+  const usersQuery = useQuery({
+    queryKey: ["dashboard-users", accessToken],
+    queryFn: () => apiRequest<{ items: DashboardUserRow[] }>({ url: "/api/v1/users" }),
+    enabled: !!accessToken && meQuery.data?.role === "admin",
+  });
+
+  const createAdmin = useMutation({
+    mutationFn: (payload: { email: string; password: string }) =>
+      apiRequest<DashboardUserRow>({
+        url: "/api/v1/users",
+        method: "POST",
+        data: payload,
+      }),
+    onError: (error) => notifyApiError(normalizeApiError(error)),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["dashboard-users"] }),
+  });
+
+  const setActive = useMutation({
+    mutationFn: (payload: { id: string; isActive: boolean }) =>
+      apiRequest<DashboardUserRow>({
+        url: `/api/v1/users/${payload.id}`,
+        method: "PATCH",
+        data: { isActive: payload.isActive },
+      }),
+    onError: (error) => notifyApiError(normalizeApiError(error)),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["dashboard-users"] }),
+  });
+
+  return {
+    users: usersQuery.data?.items ?? [],
+    isLoading: usersQuery.isLoading,
+    createAdmin,
+    setActive,
+  };
+}
+
 export function useDashboardOverview() {
   const accessToken = useDashboardAuthStore((s) => s.accessToken);
   const releases = useQuery({

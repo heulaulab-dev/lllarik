@@ -12,6 +12,7 @@ import {
   LayoutDashboard,
   LogOut,
   Megaphone,
+  Users,
 } from "lucide-react";
 import {
   Sidebar,
@@ -49,7 +50,7 @@ import {
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useDashboardAuthStore } from "@/lib/dashboardStore";
-import { useDashboardLogout } from "@/lib/dashboardService";
+import { useDashboardLogout, useDashboardMe } from "@/lib/dashboardService";
 
 type SidebarGroupKey = "main" | "secondary";
 
@@ -58,6 +59,7 @@ const items = [
   { href: "/dashboard/products", label: "Products", icon: Boxes, group: "main" },
   { href: "/dashboard/copy", label: "Copy", icon: FileText, group: "main" },
   { href: "/dashboard/releases", label: "Releases", icon: Megaphone, group: "secondary" },
+  { href: "/dashboard/users", label: "Users", icon: Users, group: "secondary" },
   { href: "/", label: "Landing", icon: BarChart3, group: "secondary" },
 ];
 
@@ -78,7 +80,9 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
   const pathname = usePathname();
   const router = useRouter();
   const accessToken = useDashboardAuthStore((s) => s.accessToken);
+  const { data: me, isLoading: meLoading } = useDashboardMe();
   const logout = useDashboardLogout();
+  const showUsersNav = !meLoading && me?.role === "admin";
   const handleSignOut = () => {
     logout.mutate();
     router.push("/login");
@@ -123,7 +127,9 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
                   <SidebarMenu>
-                    {itemsByGroup[group].map((item) => (
+                    {itemsByGroup[group]
+                      .filter((item) => item.href !== "/dashboard/users" || showUsersNav)
+                      .map((item) => (
                       <SidebarMenuItem key={item.href}>
                         <SidebarMenuButton
                           render={<Link href={item.href} />}
@@ -188,7 +194,11 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>{items.find((i) => i.href === pathname)?.label ?? "Page"}</BreadcrumbPage>
+                <BreadcrumbPage>
+                  {pathname === "/dashboard/users"
+                    ? "Users"
+                    : (items.find((i) => i.href === pathname)?.label ?? "Page")}
+                </BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
