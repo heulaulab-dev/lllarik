@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ const defaultPreferences: Preferences = {
 const storageKey = "dashboard:settings:preferences";
 
 export default function DashboardSettingsPage() {
+  const router = useRouter();
   const { data: me, isLoading: meLoading } = useDashboardMe();
   const logout = useDashboardLogout();
 
@@ -116,6 +118,20 @@ export default function DashboardSettingsPage() {
           </Button>
           <Button type="button" className="w-full" onClick={savePreferences}>
             Save Preferences
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card className="lg:col-span-5">
+        <CardHeader>
+          <CardTitle>Dashboard tour</CardTitle>
+          <CardDescription>
+            Replay the guided walkthrough of the sidebar menu. Your progress is saved to your account.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button type="button" variant="outline" onClick={() => router.push("/dashboard/overview?replayTour=1")}>
+            Replay dashboard tour
           </Button>
         </CardContent>
       </Card>
