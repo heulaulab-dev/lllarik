@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -51,6 +51,7 @@ import {
 import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { DashboardTourJoyride } from "@/components/DashboardTourJoyride";
 import { useDashboardAuthStore } from "@/lib/dashboardStore";
 import { useDashboardLogout, useDashboardMe } from "@/lib/dashboardService";
 
@@ -101,6 +102,22 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
   const displayEmail = me?.email ?? "";
   const displayName = me?.name?.trim() ?? "";
   const [searchQuery, setSearchQuery] = useState("");
+  const [replayTour, setReplayTour] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const u = new URL(window.location.href);
+    if (u.searchParams.get("replayTour") !== "1") return;
+    u.searchParams.delete("replayTour");
+    const qs = u.searchParams.toString();
+    const next = `${u.pathname}${qs ? `?${qs}` : ""}${u.hash}`;
+    window.history.replaceState({}, "", next);
+    setReplayTour(true);
+  }, []);
+
+  const handleReplayTourConsumed = useCallback(() => {
+    setReplayTour(false);
+  }, []);
   const displayInitials = displayName
     ? displayName
         .split(/\s+/)
@@ -145,10 +162,15 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
   if (!accessToken) return null;
 
   return (
+    <>
     <SidebarProvider>
       <Sidebar variant="inset" className="border-r bg-[#fafafa]">
         <SidebarHeader className="gap-1.5 p-3">
-          <Link href="/dashboard/overview" className="rounded-md border bg-white px-3 py-2 text-sm">
+          <Link
+            href="/dashboard/overview"
+            className="rounded-md border bg-white px-3 py-2 text-sm"
+            data-tour-id="tour-workspace"
+          >
             <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Workspace</div>
             <div className="truncate text-sm font-medium text-foreground">LLLARIK Dashboard</div>
           </Link>
@@ -157,6 +179,7 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
             <Input
               aria-label="Search dashboard"
               data-testid="dashboard-sidebar-search"
+              data-tour-id="tour-search"
               placeholder="Search menu..."
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
@@ -172,7 +195,10 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
             <div key={group}>
               {index > 0 && <SidebarSeparator />}
               <SidebarGroup className={group === "main" ? "pt-0" : "pt-1"}>
-                <SidebarGroupLabel className="h-7 px-2 text-[11px] font-semibold uppercase tracking-wide">
+                <SidebarGroupLabel
+                  className="h-7 px-2 text-[11px] font-semibold uppercase tracking-wide"
+                  data-tour-id={group === "main" ? "tour-nav-main" : "tour-nav-secondary"}
+                >
                   {groupLabels[group]}
                 </SidebarGroupLabel>
                 <SidebarGroupContent>
@@ -184,6 +210,7 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
                           isActive={pathname === item.href}
                           tooltip={item.label}
                           className="h-8 px-2"
+                          data-tour-id={item.href === "/dashboard/users" ? "tour-users" : undefined}
                         >
                           <item.icon />
                           <span>{item.label}</span>
@@ -204,6 +231,7 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
         <SidebarFooter className="p-3 pt-2">
           <div
             data-testid="dashboard-sidebar-account"
+            data-tour-id="tour-account"
             className="rounded-xl border bg-white px-2.5 py-2.5 shadow-xs"
           >
             <div className="flex items-center gap-2.5">
@@ -241,7 +269,9 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
       </Sidebar>
       <SidebarInset>
         <header className="h-16 border-b flex items-center px-4 gap-3">
-          <SidebarTrigger />
+          <span data-tour-id="tour-sidebar-trigger" className="inline-flex">
+            <SidebarTrigger />
+          </span>
           <Separator orientation="vertical" className="h-5" />
           <Breadcrumb>
             <BreadcrumbList>
@@ -278,5 +308,12 @@ export default function DashboardAppLayout({ children }: Readonly<{ children: Re
         <div className="p-6">{children}</div>
       </SidebarInset>
     </SidebarProvider>
+    <DashboardTourJoyride
+      me={me}
+      meLoading={meLoading}
+      forceFullReplay={replayTour}
+      onReplayConsumed={handleReplayTourConsumed}
+    />
+    </>
   );
 }

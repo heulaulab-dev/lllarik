@@ -34,9 +34,26 @@ vi.mock("@/lib/dashboardService", () => ({
     mutate: mockLogoutMutate,
   }),
   useDashboardMe: () => ({
-    data: { userId: "u1", email: "a@example.com", role: "admin" },
+    data: {
+      userId: "u1",
+      email: "a@example.com",
+      role: "admin",
+      dashboardTourStepAcks: {
+        "sidebar.workspace": 1,
+        "sidebar.search": 1,
+        "nav.main": 1,
+        "nav.secondary": 1,
+        "nav.users": 1,
+        "sidebar.account": 1,
+        "header.sidebar-trigger": 1,
+      },
+    },
     isLoading: false,
   }),
+}));
+
+vi.mock("@/components/DashboardTourJoyride", () => ({
+  DashboardTourJoyride: () => null,
 }));
 
 describe("dashboard app sidebar regression coverage", () => {
