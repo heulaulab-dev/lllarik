@@ -128,27 +128,6 @@ export function useDashboardMe() {
   });
 }
 
-export function usePatchDashboardTourAcks() {
-  const queryClient = useQueryClient();
-  const accessToken = useDashboardAuthStore((s) => s.accessToken);
-  return useMutation({
-    mutationFn: (acks: Record<string, number>) =>
-      apiRequest<{ dashboardTourStepAcks: Record<string, number> }>({
-        url: "/api/v1/me/dashboard-tour-acks",
-        method: "PATCH",
-        data: { acks },
-      }),
-    onSuccess: (data) => {
-      queryClient.setQueryData(
-        ["dashboard-me", accessToken],
-        (prev: DashboardMe | undefined) =>
-          prev ? { ...prev, dashboardTourStepAcks: data.dashboardTourStepAcks } : prev,
-      );
-    },
-    onError: (error) => notifyApiError(normalizeApiError(error)),
-  });
-}
-
 export function useDashboardUsers() {
   const accessToken = useDashboardAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
