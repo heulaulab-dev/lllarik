@@ -33,6 +33,7 @@ export function DashboardTourJoyride({ me, meLoading, forceFullReplay, onReplayC
   const [run, setRun] = useState(false);
   const [steps, setSteps] = useState<JoyrideStep[]>([]);
   const runStepsRef = useRef<DashboardTourStep[]>([]);
+  const hasPersistedRef = useRef(false);
 
   const reducedMotion =
     typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -55,6 +56,7 @@ export function DashboardTourJoyride({ me, meLoading, forceFullReplay, onReplayC
     if (forceFullReplay) {
       onReplayConsumed();
     }
+    hasPersistedRef.current = false;
     runStepsRef.current = pending;
     setSteps(toJoyrideSteps(pending));
     setRun(true);
@@ -71,8 +73,9 @@ export function DashboardTourJoyride({ me, meLoading, forceFullReplay, onReplayC
           toast.error("Tour could not highlight a target. Try expanding the sidebar.");
           return;
         }
-        if (data.type !== EVENTS.TOUR_STATUS) return;
         if (data.status !== STATUS.FINISHED && data.status !== STATUS.SKIPPED) return;
+        if (hasPersistedRef.current) return;
+        hasPersistedRef.current = true;
 
         const acks: Record<string, number> = {};
         for (const s of runStepsRef.current) {
