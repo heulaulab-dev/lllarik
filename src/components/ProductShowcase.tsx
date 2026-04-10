@@ -28,7 +28,7 @@ function ProductCard({ product, index, onClick }: { product: LandingProduct; ind
       style={{ transitionDelay: `${index * 100}ms` }}
       onClick={onClick}
     >
-      <div className="relative w-full overflow-hidden bg-card" style={{ aspectRatio: index === 0 || index === 3 ? "3/4" : "4/3" }}>
+      <div className="relative bg-card w-full overflow-hidden" style={{ aspectRatio: index === 0 || index === 3 ? "3/4" : "4/3" }}>
         <Image
           src={product.image}
           alt={product.name}
@@ -36,30 +36,30 @@ function ProductCard({ product, index, onClick }: { product: LandingProduct; ind
           loading="lazy"
           quality={60}
           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          className="object-cover transition-transform duration-700 group-hover:scale-105"
+          className="object-cover group-hover:scale-105 transition-transform duration-700"
         />
 
         {/* Hover overlay */}
-        <div className="absolute inset-0 flex flex-col justify-end p-6 bg-linear-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-          <p className="text-xs text-white/90 leading-relaxed mb-3">
+        <div className="absolute inset-0 flex flex-col justify-end bg-linear-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 p-6 transition-opacity duration-500">
+          <p className="mb-3 text-white/90 text-xs leading-relaxed">
             {product.story}
           </p>
-          <p className="text-[9px] tracking-[0.2em] uppercase text-white/60">
+          <p className="text-[9px] text-white/60 uppercase tracking-[0.2em]">
             {product.material}
           </p>
         </div>
 
-        <div className="absolute top-4 left-4 text-[10px] tracking-widest text-white/50 mix-blend-difference">
+        <div className="top-4 left-4 absolute text-[10px] text-white/50 tracking-widest mix-blend-difference">
           {String(index + 1).padStart(2, "0")}
         </div>
-        <div className="absolute top-4 right-4 text-[10px] tracking-[0.2em] uppercase text-white/50 mix-blend-difference">
+        <div className="top-4 right-4 absolute text-[10px] text-white/50 uppercase tracking-[0.2em] mix-blend-difference">
           {product.category}
         </div>
       </div>
 
-      <div className="mt-4 flex items-start justify-between">
+      <div className="flex justify-between items-start mt-4">
         <div>
-          <h3 className="text-sm md:text-base font-bold tracking-tight uppercase">
+          <h3 className="font-bold text-sm md:text-base uppercase tracking-tight">
             {product.name}
           </h3>
           <div className="flex flex-wrap gap-1.5 mt-2">
@@ -67,15 +67,15 @@ function ProductCard({ product, index, onClick }: { product: LandingProduct; ind
               <Badge
                 key={tag}
                 variant="outline"
-                className="text-[8px] tracking-[0.15em] uppercase text-muted-foreground px-2 py-0.5 h-auto font-normal"
+                className="px-2 py-0.5 h-auto font-normal text-[8px] text-muted-foreground uppercase tracking-[0.15em]"
               >
                 {tag}
               </Badge>
             ))}
           </div>
         </div>
-        <div className="w-8 h-8 flex items-center justify-center border border-border transition-all duration-300 group-hover:bg-primary group-hover:border-primary shrink-0">
-          <svg width="10" height="10" viewBox="0 0 10 10" className="transition-colors duration-300 group-hover:text-primary-foreground text-foreground">
+        <div className="flex justify-center items-center group-hover:bg-primary border border-border group-hover:border-primary w-8 h-8 transition-all duration-300 shrink-0">
+          <svg width="10" height="10" viewBox="0 0 10 10" className="text-foreground group-hover:text-primary-foreground transition-colors duration-300">
             <path d="M1 9L9 1M9 1H3M9 1v6" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
@@ -95,14 +95,18 @@ function ProductModal({
 }) {
   if (!product) return null;
 
+  const directLink = () => {
+    window.open(`https://www.instagram.com/lllarik.id`, "_blank");
+  }
+
   return (
     <Dialog open={open} onOpenChange={(val) => { if (!val) onClose(); }}>
       <DialogContent
-        className="sm:max-w-3xl p-0 overflow-hidden"
+        className="p-0 sm:max-w-3xl overflow-hidden"
         showCloseButton={true}
       >
         <div className="grid grid-cols-1 md:grid-cols-2">
-          <div className="relative aspect-3/4 bg-card">
+          <div className="relative bg-card aspect-3/4">
             <Image
               src={product.image}
               alt={product.name}
@@ -114,29 +118,29 @@ function ProductModal({
             />
           </div>
 
-          <div className="p-8 md:p-10 flex flex-col justify-between">
+          <div className="flex flex-col justify-between p-8 md:p-10">
             <DialogHeader className="text-left">
-              <p className="text-[10px] tracking-[0.4em] uppercase text-muted-foreground mb-2">
+              <p className="mb-2 text-[10px] text-muted-foreground uppercase tracking-[0.4em]">
                 {product.category}
               </p>
-              <DialogTitle className="text-xl font-bold tracking-tight uppercase">
+              <DialogTitle className="font-bold text-xl uppercase tracking-tight">
                 {product.name}
               </DialogTitle>
-              <DialogDescription className="text-sm text-muted-foreground leading-relaxed mt-3">
+              <DialogDescription className="mt-3 text-muted-foreground text-sm leading-relaxed">
                 {product.story}
               </DialogDescription>
             </DialogHeader>
 
-            <div className="mt-6 space-y-4">
-              <p className="text-xs text-muted-foreground">
-                <span className="text-foreground font-bold">Material:</span> {product.material}
+            <div className="space-y-4 mt-6">
+              <p className="text-muted-foreground text-xs">
+                <span className="font-bold text-foreground">Material:</span> {product.material}
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {product.tags.map((tag) => (
                   <Badge
                     key={tag}
                     variant="outline"
-                    className="text-[8px] tracking-[0.15em] uppercase px-2.5 py-1 h-auto font-normal text-foreground border-foreground/20"
+                    className="px-2.5 py-1 border-foreground/20 h-auto font-normal text-[8px] text-foreground uppercase tracking-[0.15em]"
                   >
                     {tag}
                   </Badge>
@@ -144,7 +148,9 @@ function ProductModal({
               </div>
 
               <Button
-                className="w-full h-auto py-4 text-[10px] tracking-[0.25em] uppercase bg-primary text-primary-foreground hover:bg-foreground/80 transition-colors duration-500 mt-4"
+              onClick={directLink}
+                className="bg-primary hover:bg-foreground/80 mt-4 py-4 w-full h-auto text-[10px] text-primary-foreground uppercase tracking-[0.25em] transition-colors duration-500"
+                
               >
                 Inquire About This Piece
               </Button>
@@ -171,27 +177,27 @@ export default function ProductShowcase({
   const hasProducts = displayProducts.length > 0;
 
   return (
-    <section id="collection" className="relative py-32 md:py-48 px-6 md:px-12 lg:px-20">
+    <section id="collection" className="relative px-6 md:px-12 lg:px-20 py-32 md:py-48">
       <div ref={titleRef} className="mb-16 md:mb-24">
-        <p className="text-[10px] tracking-[0.4em] uppercase text-muted-foreground mb-4">
+        <p className="mb-4 text-[10px] text-muted-foreground uppercase tracking-[0.4em]">
           {content.label}
         </p>
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-[1.05] tracking-tight uppercase">
+        <div className="flex md:flex-row flex-col md:justify-between md:items-end gap-6">
+          <h2 className="font-bold text-3xl md:text-4xl lg:text-5xl uppercase leading-[1.05] tracking-tight">
             {content.headingLine1}
             <br />
-            <span className="font-normal normal-case italic">{content.headingAccent}</span>
+            <span className="font-normal italic normal-case">{content.headingAccent}</span>
           </h2>
-          <p className="text-xs text-muted-foreground max-w-xs leading-relaxed">
+          <p className="max-w-xs text-muted-foreground text-xs leading-relaxed">
             {content.description}
           </p>
         </div>
       </div>
 
       {!hasProducts ? (
-        <p className="text-sm text-muted-foreground">No products available yet</p>
+        <p className="text-muted-foreground text-sm">No products available yet</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 auto-rows-auto">
+        <div className="gap-6 lg:gap-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 auto-rows-auto">
           {displayProducts.map((product, index) => (
             <div key={`${product.name}-${index}`} className="lg:col-span-1">
               <ProductCard product={product} index={index} onClick={() => setSelectedProduct(product)} />

@@ -6,6 +6,7 @@ import { useScrollReveal } from "@/hooks/useScrollReveal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import Link from "next/link";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
@@ -118,24 +119,73 @@ export default function Footer() {
 				</div>
 			</div>
 
-			{/* Bottom Bar */}
-			<div className='flex md:flex-row flex-col justify-between items-center gap-4 mt-16 pt-8 border-border border-t'>
-				<p className='text-[9px] text-muted-foreground/30 uppercase tracking-[0.2em]'>
-					© 2026 LLLARIK.id — All rights reserved
-				</p>
-				<div className='flex items-center gap-6'>
-					<a
-						href='#'
-						className='text-[9px] text-muted-foreground/30 hover:text-muted-foreground uppercase tracking-[0.2em] transition-colors'
+			{/* Legal + payments (reference-style wording, LLLARIK branding) */}
+			<div className='mt-16 pt-10 border-border border-t'>
+				<div className='flex lg:flex-row flex-col lg:justify-between lg:items-start gap-8'>
+					<div className='space-y-3 max-w-2xl text-muted-foreground text-xs leading-relaxed'>
+						<p>
+							Copyright © {new Date().getFullYear()}, LLLARIK.id. See our{" "}
+							<a
+								href='#'
+								className='hover:text-foreground decoration-muted-foreground/40 hover:decoration-foreground underline underline-offset-2 transition-colors'
+							>
+								Terms of Use
+							</a>{" "}
+							and{" "}
+							<a
+								href='#'
+								className='hover:text-foreground decoration-muted-foreground/40 hover:decoration-foreground underline underline-offset-2 transition-colors'
+							>
+								Privacy Policy
+							</a>
+							.
+						</p>
+						<p className='text-[11px] text-muted-foreground/90 leading-relaxed'>
+							The LLLARIK name and logo are trademarks of LLLARIK.id.
+						</p>
+						<div className='flex flex-wrap items-center gap-x-2 gap-y-1 pt-1'>
+								<Link href='https://heulaulab.tech' target='_blank' rel='noopener noreferrer'>
+									<div className='flex items-center gap-x-2'>
+										<Image
+									src='/heulaulab.svg'
+									alt='HeulauLab'
+									width={100}
+									height={100}
+									className='dark:invert w-auto h-10'
+								/>
+									<span
+										className='text-muted-foreground/40 select-none'
+										aria-hidden
+									>
+										|
+									</span>
+									<span className='text-[11px] text-muted-foreground/90'>
+										Proudly partnered with heulaulab
+									</span>
+									</div>
+								</Link>
+						</div>
+					</div>
+					<div
+						className='flex flex-wrap lg:justify-end gap-2'
+						aria-label='Accepted payment methods'
 					>
-						Privacy
-					</a>
-					<a
-						href='#'
-						className='text-[9px] text-muted-foreground/30 hover:text-muted-foreground uppercase tracking-[0.2em] transition-colors'
-					>
-						Terms
-					</a>
+						{[
+							"Apple Pay",
+							"Google Pay",
+							"Mastercard",
+							"PayPal",
+							"Shop Pay",
+							"Visa",
+						].map((label) => (
+							<span
+								key={label}
+								className='inline-flex items-center px-2.5 py-1 border border-border rounded-md text-[10px] text-muted-foreground uppercase tracking-wide'
+							>
+								{label}
+							</span>
+						))}
+					</div>
 				</div>
 			</div>
 		</footer>
