@@ -125,11 +125,10 @@ Expected: exit code 0.
 - [ ] **Step 4: Commit**
 
 ```bash
-cd /home/kiyaya/kiyadev/lllarik-app/lllarik && git add ../lllarik-api/internal/models/models.go ../lllarik-api/internal/db/db.go
-git commit -m "feat(api): add Series, SeriesVersion, Product.SeriesID models"
+cd /home/kiyaya/kiyadev/lllarik-app/lllarik-api && git add internal/models/models.go internal/db/db.go && git commit -m "feat(api): add Series, SeriesVersion, Product.SeriesID models"
 ```
 
-(Adjust paths if you commit from monorepo root; `lllarik-api` may be a sibling—use actual repo layout.)
+(`lllarik-api` is a **separate** git repository from `lllarik`; commit API changes inside `lllarik-api`.)
 
 ---
 
