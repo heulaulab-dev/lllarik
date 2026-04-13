@@ -17,7 +17,14 @@ export default function LandingSections({ content }: LandingSectionsProps) {
     <main>
       <Hero content={content.hero} />
       <Narrative />
-      <ProductShowcase products={content.products} content={content.productShowcase} />
+      {content.showcaseSections.map((sec, index) => (
+        <ProductShowcase
+          key={sec.id}
+          series={sec.series}
+          content={sec.content}
+          anchorId={index === 0 ? "collection" : `collection-${sec.id}`}
+        />
+      ))}
       <Lookbook spreads={content.lookbookSpreads} content={content.lookbook} />
       <SocialProof />
       <CraftPhilosophy />

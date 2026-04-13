@@ -22,6 +22,11 @@ const copyOptions = [
   { key: "hero.cta.primary", label: "Hero CTA - Primary" },
   { key: "hero.cta.secondary", label: "Hero CTA - Secondary" },
   { key: "hero.image.badge", label: "Hero Image - Badge" },
+  {
+    key: "landing.showcaseSections",
+    label:
+      "Landing — Showcase layout (JSON, advanced): split catalog into multiple blocks. Each item: id?, seriesSlugs (API series slug strings), label?, headingLine1?, headingAccent?, description?. Unlisted series are appended to the last block. Omit this key for a single showcase using the normal productShowcase.* copy keys.",
+  },
   { key: "productShowcase.label", label: "Product Showcase - Label" },
   { key: "productShowcase.title.line1", label: "Product Showcase - Title Line 1" },
   { key: "productShowcase.title.line2", label: "Product Showcase - Title Line 2" },

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { buildProductPayload, moveImageToPrimary, normalizeTag } from "./page";
+import { buildProductPayload, moveImageToPrimary, normalizeTag } from "../product-form-helpers";
 
-describe("products page helpers", () => {
+describe("product form helpers", () => {
   it("normalizes tags by trimming whitespace", () => {
     expect(normalizeTag("  minimal  ")).toBe("minimal");
   });
@@ -17,6 +17,7 @@ describe("products page helpers", () => {
       name: "Solen",
       category: "Pendant",
       material: "Brass",
+      size: "180 × 60 cm",
       story: "",
       tags: [],
       slug: "solen",
