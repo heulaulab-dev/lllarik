@@ -431,6 +431,7 @@ export default function DashboardSeriesDetailPage() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Slug</TableHead>
+                  <TableHead>Size</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
@@ -449,6 +450,7 @@ export default function DashboardSeriesDetailPage() {
                         tags: r.tags ?? [],
                         images: rowImages,
                         slug: r.slug ?? "",
+                        size: r.size ?? "",
                         sortOrder: r.sortOrder ?? 0,
                       });
                       setUploads(
@@ -463,6 +465,7 @@ export default function DashboardSeriesDetailPage() {
                   >
                     <TableCell>{r.name}</TableCell>
                     <TableCell className="font-mono text-xs">{r.slug || "—"}</TableCell>
+                    <TableCell className="max-w-32 truncate text-muted-foreground text-xs">{r.size || "—"}</TableCell>
                     <TableCell>
                       <Badge variant="secondary">{r.state ?? "draft"}</Badge>
                     </TableCell>
@@ -489,6 +492,7 @@ export default function DashboardSeriesDetailPage() {
               value={productForm.material}
               onChange={(e) => setProductForm((v) => ({ ...v, material: e.target.value }))}
             />
+            <Input placeholder="Size (e.g. 180 × 60 cm)" value={productForm.size} onChange={(e) => setProductForm((v) => ({ ...v, size: e.target.value }))} />
             <Input placeholder="Slug" value={productForm.slug} onChange={(e) => setProductForm((v) => ({ ...v, slug: e.target.value }))} />
             <Textarea placeholder="Story" value={productForm.story} onChange={(e) => setProductForm((v) => ({ ...v, story: e.target.value }))} />
             <div className="space-y-2">

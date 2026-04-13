@@ -2,6 +2,7 @@ export type LandingProduct = {
   name: string;
   category: string;
   material: string;
+  size: string;
   story: string;
   tags: string[];
   image: string;
@@ -61,11 +62,22 @@ export type LookbookContent = {
   closingLine: string;
 };
 
+/** One catalog block on the landing page (own heading + series list). */
+export type ProductShowcaseSection = {
+  id: string;
+  series: LandingSeries[];
+  content: ProductShowcaseContent;
+};
+
 export type LandingContent = {
   hero: HeroContent;
+  /** Kept for compatibility; mirrors the first showcase section’s headings when present. */
   productShowcase: ProductShowcaseContent;
   lookbook: LookbookContent;
+  /** All published series, flattened in showcase section order (lookbook, etc.). */
   series: LandingSeries[];
+  /** Separate product showcase sections; configure via copy key `landing.showcaseSections`. */
+  showcaseSections: ProductShowcaseSection[];
   lookbookSpreads: LookbookSpread[];
 };
 
@@ -105,6 +117,7 @@ export const defaultProducts: LandingProduct[] = [
     name: "Solen",
     category: "Standing Mirror",
     material: "Lacquered MDF, birch plywood stand",
+    size: "Floor — 180 × 60 cm",
     story:
       "An elongated oval silhouette in golden yellow — Solen captures light and anchors any room with its warm, optimistic presence. Available in floor and tabletop sizes.",
     tags: ["Standing Mirror", "Hand-lacquered", "Limited Batch"],
@@ -114,6 +127,7 @@ export const defaultProducts: LandingProduct[] = [
     name: "Aven",
     category: "Accent Mirror",
     material: "Lacquered MDF, birch plywood stand",
+    size: "165 × 70 cm",
     story:
       "Organic freeform curves in coral pink — Aven is designed to break every straight line in your space. A mirror that refuses to be ignored.",
     tags: ["Freeform Shape", "Floor + Tabletop", "Limited Edition"],
@@ -123,6 +137,7 @@ export const defaultProducts: LandingProduct[] = [
     name: "Karo",
     category: "Standing Mirror",
     material: "Lacquered MDF, birch plywood stand",
+    size: "175 × 55 cm",
     story:
       "Clean geometry meets bold color. Karo grounds a room with confident structure — sharp corners softened just enough to feel alive.",
     tags: ["Angular Form", "Hand-lacquered", "Limited Batch"],
@@ -132,6 +147,7 @@ export const defaultProducts: LandingProduct[] = [
     name: "Elio",
     category: "Statement Mirror",
     material: "Lacquered MDF, birch plywood stand",
+    size: "160 × 90 cm",
     story:
       "Soft waves and a whimsical silhouette in sky blue — Elio brings play into reflection. Each curve is an invitation to see your space differently.",
     tags: ["Wavy Silhouette", "Artisan Made", "Limited Edition"],
@@ -150,6 +166,14 @@ const defaultSeriesFromProducts: LandingSeries = {
   tags: ["Vol. 01"],
   image: defaultProducts[0]?.image ?? "/products/01. SOLEN.jpg.jpeg",
   products: defaultProducts,
+};
+
+export const defaultProductShowcaseContent: ProductShowcaseContent = {
+  label: "The Collection",
+  headingLine1: "Pieces That",
+  headingAccent: "Define a Room",
+  description:
+    "Not a catalog. A curated selection of mirrors that carry shape, color, and character.",
 };
 
 export const defaultLandingContent: LandingContent = {
@@ -172,13 +196,7 @@ export const defaultLandingContent: LandingContent = {
     heroBadge: "Vol. 01 — The Essential",
     trustSignals: ["Curated Pieces", "Limited Editions", "Crafted with Intent"],
   },
-  productShowcase: {
-    label: "The Collection",
-    headingLine1: "Pieces That",
-    headingAccent: "Define a Room",
-    description:
-      "Not a catalog. A curated selection of mirrors that carry shape, color, and character.",
-  },
+  productShowcase: defaultProductShowcaseContent,
   lookbook: {
     label: "Lookbook — Vol. 01",
     headingLine1: "The Essential",
@@ -188,6 +206,13 @@ export const defaultLandingContent: LandingContent = {
     closingLine: "End of Vol. 01",
   },
   series: [defaultSeriesFromProducts],
+  showcaseSections: [
+    {
+      id: "default",
+      series: [defaultSeriesFromProducts],
+      content: defaultProductShowcaseContent,
+    },
+  ],
   lookbookSpreads: [
     {
       image: "/products/02. AVEN.jpg.jpeg",
@@ -229,6 +254,130 @@ type PublicApiResponse = {
 const getCopy = (copy: Record<string, string> | undefined, key: string, fallback: string) =>
   copy?.[key] && copy[key].trim().length > 0 ? copy[key] : fallback;
 
+/** Copy key: JSON array of sections. See dashboard Copy page hint for `landing.showcaseSections`. */
+export const landingShowcaseLayoutCopyKey = "landing.showcaseSections";
+
+type RawShowcaseSection = {
+  id?: unknown;
+  seriesSlugs?: unknown;
+  label?: unknown;
+  headingLine1?: unknown;
+  headingAccent?: unknown;
+  description?: unknown;
+};
+
+function defaultProductShowcaseFromCopy(copy: Record<string, string> | undefined): ProductShowcaseContent {
+  return {
+    label: getCopy(copy, "productShowcase.label", defaultProductShowcaseContent.label),
+    headingLine1: getCopy(
+      copy,
+      "productShowcase.heading.line1",
+      defaultProductShowcaseContent.headingLine1,
+    ),
+    headingAccent: getCopy(
+      copy,
+      "productShowcase.heading.accent",
+      defaultProductShowcaseContent.headingAccent,
+    ),
+    description: getCopy(copy, "productShowcase.description", defaultProductShowcaseContent.description),
+  };
+}
+
+function parseShowcaseLayout(raw: string | undefined): RawShowcaseSection[] | null {
+  if (!raw?.trim()) return null;
+  try {
+    const v = JSON.parse(raw) as unknown;
+    if (!Array.isArray(v) || v.length === 0) return null;
+    return v as RawShowcaseSection[];
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Splits API series into separate landing showcase sections.
+ * Without copy `landing.showcaseSections`, returns one section with every series (existing behavior).
+ * With JSON layout, each entry lists `seriesSlugs` (API series `slug` values) and optional wording;
+ * any series not listed is appended to the **last** section.
+ */
+export function buildShowcaseSections(
+  mappedSeries: LandingSeries[],
+  copy: Record<string, string> | undefined,
+): ProductShowcaseSection[] {
+  const fallbackContent = defaultProductShowcaseFromCopy(copy);
+  const layout = parseShowcaseLayout(copy?.[landingShowcaseLayoutCopyKey]);
+  if (!layout) {
+    return [{ id: "default", series: mappedSeries, content: fallbackContent }];
+  }
+
+  const bySlug = new Map(mappedSeries.map((s) => [s.slug, s]));
+  const used = new Set<string>();
+
+  const resolveContent = (entry: RawShowcaseSection): ProductShowcaseContent => ({
+    label:
+      typeof entry.label === "string" && entry.label.trim()
+        ? entry.label.trim()
+        : fallbackContent.label,
+    headingLine1:
+      typeof entry.headingLine1 === "string" && entry.headingLine1.trim()
+        ? entry.headingLine1.trim()
+        : fallbackContent.headingLine1,
+    headingAccent:
+      typeof entry.headingAccent === "string" && entry.headingAccent.trim()
+        ? entry.headingAccent.trim()
+        : fallbackContent.headingAccent,
+    description:
+      typeof entry.description === "string" && entry.description.trim()
+        ? entry.description.trim()
+        : fallbackContent.description,
+  });
+
+  const sections: ProductShowcaseSection[] = [];
+
+  for (let i = 0; i < layout.length; i++) {
+    const entry = layout[i];
+    const idRaw = entry.id;
+    const id =
+      typeof idRaw === "string" && idRaw.trim().length > 0 ? idRaw.trim() : `section-${i}`;
+
+    const slugsRaw = entry.seriesSlugs;
+    const slugs = Array.isArray(slugsRaw)
+      ? slugsRaw.map((x) => String(x).trim()).filter(Boolean)
+      : [];
+
+    let series: LandingSeries[] = [];
+    if (slugs.length === 0 && layout.length === 1) {
+      series = [...mappedSeries];
+      series.forEach((s) => used.add(s.id));
+    } else if (slugs.length > 0) {
+      for (const slug of slugs) {
+        const s = bySlug.get(slug);
+        if (s && !used.has(s.id)) {
+          series.push(s);
+          used.add(s.id);
+        }
+      }
+    }
+
+    sections.push({ id, series, content: resolveContent(entry) });
+  }
+
+  const leftover = mappedSeries.filter((s) => !used.has(s.id));
+  if (leftover.length > 0 && sections.length > 0) {
+    const li = sections.length - 1;
+    const last = sections[li];
+    if (last) {
+      sections[li] = { ...last, series: [...last.series, ...leftover] };
+    }
+  }
+
+  const out = sections.filter((s) => s.series.length > 0);
+  if (out.length === 0 && mappedSeries.length > 0) {
+    return [{ id: "default", series: mappedSeries, content: fallbackContent }];
+  }
+  return out;
+}
+
 function mapLandingProductRecord(item: Record<string, unknown>): LandingProduct | null {
   const tagsRaw = item.tags ?? item.Tags;
   const tags = Array.isArray(tagsRaw)
@@ -250,6 +399,7 @@ function mapLandingProductRecord(item: Record<string, unknown>): LandingProduct 
     name,
     category: String(item.category ?? item.Category ?? ""),
     material: String(item.material ?? item.Material ?? ""),
+    size: String(item.size ?? item.Size ?? ""),
     story: String(item.story ?? item.Story ?? ""),
     tags,
     image,
@@ -310,6 +460,13 @@ export async function getLandingContent(): Promise<LandingContent> {
   const emptyProductContent: LandingContent = {
     ...defaultLandingContent,
     series: [],
+    showcaseSections: [
+      {
+        id: "default",
+        series: [],
+        content: defaultProductShowcaseContent,
+      },
+    ],
     lookbookSpreads: [],
   };
 
@@ -347,7 +504,9 @@ export async function getLandingContent(): Promise<LandingContent> {
       }
     }
 
-    const flatProducts = flattenSeriesProducts(mappedSeries);
+    const showcaseSections = buildShowcaseSections(mappedSeries, copy);
+    const seriesFlat = showcaseSections.flatMap((s) => s.series);
+    const flatProducts = flattenSeriesProducts(seriesFlat);
 
     return {
       hero: {
@@ -366,25 +525,7 @@ export async function getLandingContent(): Promise<LandingContent> {
         secondaryCta: getCopy(copy, "hero.cta.secondary", defaultLandingContent.hero.secondaryCta),
         heroBadge: getCopy(copy, "hero.image.badge", defaultLandingContent.hero.heroBadge),
       },
-      productShowcase: {
-        ...defaultLandingContent.productShowcase,
-        label: getCopy(copy, "productShowcase.label", defaultLandingContent.productShowcase.label),
-        headingLine1: getCopy(
-          copy,
-          "productShowcase.heading.line1",
-          defaultLandingContent.productShowcase.headingLine1,
-        ),
-        headingAccent: getCopy(
-          copy,
-          "productShowcase.heading.accent",
-          defaultLandingContent.productShowcase.headingAccent,
-        ),
-        description: getCopy(
-          copy,
-          "productShowcase.description",
-          defaultLandingContent.productShowcase.description,
-        ),
-      },
+      productShowcase: showcaseSections[0]?.content ?? defaultProductShowcaseFromCopy(copy),
       lookbook: {
         ...defaultLandingContent.lookbook,
         label: getCopy(copy, "lookbook.label", defaultLandingContent.lookbook.label),
@@ -393,7 +534,8 @@ export async function getLandingContent(): Promise<LandingContent> {
         intro: getCopy(copy, "lookbook.intro", defaultLandingContent.lookbook.intro),
         closingLine: getCopy(copy, "lookbook.closingLine", defaultLandingContent.lookbook.closingLine),
       },
-      series: mappedSeries,
+      series: seriesFlat,
+      showcaseSections,
       lookbookSpreads: flatProducts.map((product, index) => ({
         image: product.image,
         title: product.name,

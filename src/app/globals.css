@@ -99,12 +99,11 @@
 
 html {
   scroll-behavior: auto;
-  overflow-x: hidden;
 }
 
 body {
-  overflow-x: hidden;
   position: relative;
+  overflow-x: clip;
 }
 
 body::before {

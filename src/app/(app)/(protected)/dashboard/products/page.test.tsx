@@ -17,6 +17,7 @@ describe("product form helpers", () => {
       name: "Solen",
       category: "Pendant",
       material: "Brass",
+      size: "180 × 60 cm",
       story: "",
       tags: [],
       slug: "solen",

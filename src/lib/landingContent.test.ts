@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { getLandingContent } from "./landingContent";
+import { buildShowcaseSections, getLandingContent, landingShowcaseLayoutCopyKey } from "./landingContent";
 
 describe("getLandingContent", () => {
   beforeEach(() => {
@@ -30,6 +30,7 @@ describe("getLandingContent", () => {
                   name: "Solen",
                   category: "Mirror",
                   material: "MDF",
+                  size: "180 × 60 cm",
                   story: "Story",
                   tags: ["A"],
                   image_url: "/img.jpg",
@@ -44,9 +45,12 @@ describe("getLandingContent", () => {
 
     const content = await getLandingContent();
     expect(content.series).toHaveLength(1);
+    expect(content.showcaseSections).toHaveLength(1);
+    expect(content.showcaseSections[0]?.series).toHaveLength(1);
     expect(content.series[0]?.name).toBe("Vol 01");
     expect(content.series[0]?.products).toHaveLength(1);
     expect(content.series[0]?.products[0]?.name).toBe("Solen");
+    expect(content.series[0]?.products[0]?.size).toBe("180 × 60 cm");
   });
 
   it("returns empty series when backend response has no series or products", async () => {
@@ -124,5 +128,126 @@ describe("getLandingContent", () => {
     expect(fetchSpy).toHaveBeenCalledWith("http://public-api.test/api/v1/public/content", { cache: "no-store" });
     expect(content.series).toHaveLength(1);
     expect(content.series[0]?.products[0]?.name).toBe("Child");
+  });
+
+  it("splits showcase into multiple sections when landing.showcaseSections JSON is set", async () => {
+    const layout = [
+      {
+        id: "mirrors",
+        seriesSlugs: ["vol-a"],
+        label: "Mirrors block",
+        headingLine1: "Line A",
+        headingAccent: "Accent A",
+        description: "Desc A",
+      },
+      {
+        id: "objects",
+        seriesSlugs: ["vol-b"],
+        label: "Objects block",
+        headingLine1: "Line B",
+        headingAccent: "Accent B",
+        description: "Desc B",
+      },
+    ];
+    vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          copy: { [landingShowcaseLayoutCopyKey]: JSON.stringify(layout) },
+          series: [
+            {
+              id: "a1",
+              slug: "vol-a",
+              name: "Vol A",
+              category: "Mirrors",
+              material: "",
+              story: "Sa",
+              tags: [],
+              image_url: "/a.jpg",
+              products: [
+                {
+                  name: "P1",
+                  category: "M",
+                  material: "x",
+                  story: "y",
+                  tags: [],
+                  image_url: "/p1.jpg",
+                },
+              ],
+            },
+            {
+              id: "b1",
+              slug: "vol-b",
+              name: "Vol B",
+              category: "Objects",
+              material: "",
+              story: "Sb",
+              tags: [],
+              image_url: "/b.jpg",
+              products: [
+                {
+                  name: "P2",
+                  category: "O",
+                  material: "x",
+                  story: "y",
+                  tags: [],
+                  image_url: "/p2.jpg",
+                },
+              ],
+            },
+          ],
+        }),
+        { status: 200 },
+      ),
+    );
+
+    const content = await getLandingContent();
+    expect(content.showcaseSections).toHaveLength(2);
+    expect(content.showcaseSections[0]?.id).toBe("mirrors");
+    expect(content.showcaseSections[0]?.content.label).toBe("Mirrors block");
+    expect(content.showcaseSections[0]?.series[0]?.slug).toBe("vol-a");
+    expect(content.showcaseSections[1]?.id).toBe("objects");
+    expect(content.showcaseSections[1]?.content.headingLine1).toBe("Line B");
+    expect(content.showcaseSections[1]?.series[0]?.slug).toBe("vol-b");
+    expect(content.series).toHaveLength(2);
+  });
+});
+
+describe("buildShowcaseSections", () => {
+  it("returns one section when layout copy is missing", () => {
+    const series = [
+      {
+        id: "1",
+        slug: "s-one",
+        name: "One",
+        category: "C",
+        material: "",
+        story: "",
+        tags: [],
+        image: "/i.jpg",
+        products: [],
+      },
+    ];
+    const out = buildShowcaseSections(series, undefined);
+    expect(out).toHaveLength(1);
+    expect(out[0]?.series).toEqual(series);
+  });
+
+  it("ignores invalid JSON and returns one section", () => {
+    const series = [
+      {
+        id: "1",
+        slug: "s-one",
+        name: "One",
+        category: "C",
+        material: "",
+        story: "",
+        tags: [],
+        image: "/i.jpg",
+        products: [],
+      },
+    ];
+    const out = buildShowcaseSections(series, { [landingShowcaseLayoutCopyKey]: "not-json" });
+    expect(out).toHaveLength(1);
+    expect(out[0]?.series).toEqual(series);
   });
 });

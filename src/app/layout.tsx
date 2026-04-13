@@ -57,8 +57,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("h-full antialiased", spaceMono.variable)}>
-      <body className="min-h-full flex flex-col">
+    <html lang="en" className={cn("antialiased", spaceMono.variable)}>
+      <body className="min-h-dvh bg-background text-foreground">
         <Providers>
           <SmoothScroll />
           {children}

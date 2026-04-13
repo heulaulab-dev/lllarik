@@ -14,6 +14,7 @@ export type DashboardProduct = {
   name: string;
   category: string;
   material: string;
+  size: string;
   story: string;
   tags: string[];
   images?: string[];
@@ -103,6 +104,7 @@ function normalizeProduct(item: RawRecord): DashboardProduct {
     name: readString(item, "name", "Name"),
     category: readString(item, "category", "Category"),
     material: readString(item, "material", "Material"),
+    size: readString(item, "size", "Size"),
     story: readString(item, "story", "Story"),
     tags: readStringArray(item, "tags", "Tags"),
     images,

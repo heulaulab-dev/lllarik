@@ -26,6 +26,7 @@ const sampleSeries: LandingSeries = {
       name: "Solen",
       category: "Mirror",
       material: "MDF",
+      size: "180 × 60 cm",
       story: "Story",
       tags: ["Limited"],
       image: "/products/solen.jpg",

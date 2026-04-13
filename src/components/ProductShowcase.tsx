@@ -132,6 +132,11 @@ function ProductModal({
               <p className="text-muted-foreground text-xs">
                 <span className="font-bold text-foreground">Material:</span> {product.material}
               </p>
+              {product.size ? (
+                <p className="text-muted-foreground text-xs">
+                  <span className="font-bold text-foreground">Size:</span> {product.size}
+                </p>
+              ) : null}
               <div className="flex flex-wrap gap-1.5">
                 {product.tags.map((tag) => (
                   <Badge
@@ -217,20 +222,23 @@ function SeriesDialog({
 type ProductShowcaseProps = {
   series?: LandingSeries[];
   content?: ProductShowcaseContent;
+  /** First section should use `collection` so in-page nav (e.g. Hero) still works. */
+  anchorId?: string;
 };
 
 export default function ProductShowcase({
   series = defaultLandingContent.series,
   content = defaultLandingContent.productShowcase,
+  anchorId = "collection",
 }: ProductShowcaseProps) {
   const [activeSeries, setActiveSeries] = useState<LandingSeries | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<LandingProduct | null>(null);
   const titleRef = useScrollReveal<HTMLDivElement>("up");
-  const displaySeries = series.slice(0, 4);
+  const displaySeries = series;
   const hasSeries = displaySeries.length > 0;
 
   return (
-    <section id="collection" className="relative px-6 md:px-12 lg:px-20 py-32 md:py-48">
+    <section id={anchorId} className="relative px-6 md:px-12 lg:px-20 py-32 md:py-48">
       <div ref={titleRef} className="mb-16 md:mb-24">
         <p className="mb-4 text-[10px] text-muted-foreground uppercase tracking-[0.4em]">{content.label}</p>
         <div className="flex md:flex-row flex-col md:justify-between md:items-end gap-6">

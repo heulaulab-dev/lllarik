@@ -22,6 +22,7 @@ export const emptyDashboardProduct: DashboardProduct = {
   name: "",
   category: "",
   material: "",
+  size: "",
   story: "",
   tags: [],
   images: [],
