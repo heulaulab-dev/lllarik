@@ -49,7 +49,7 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { href: "/dashboard/overview", label: "Overview", icon: LayoutDashboard, group: "main" },
-  { href: "/dashboard/products", label: "Products", icon: Boxes, group: "main" },
+  { href: "/dashboard/series", label: "Series", icon: Boxes, group: "main" },
   { href: "/dashboard/copy", label: "Copy", icon: Copy, group: "main" },
   { href: "/dashboard/releases", label: "Releases", icon: Megaphone, group: "secondary" },
   { href: "/dashboard/users", label: "Users", icon: Users, group: "secondary", adminOnly: true },
@@ -87,9 +87,9 @@ function AccountMenu({ displayName, displayEmail, showUsersNav, onSignOut }: Rea
         <LayoutDashboard className="size-4" />
         Overview
       </DropdownMenuItem>
-      <DropdownMenuItem render={<Link href="/dashboard/products" />}>
+      <DropdownMenuItem render={<Link href="/dashboard/series" />}>
         <Boxes className="size-4" />
-        Products
+        Series
       </DropdownMenuItem>
       <DropdownMenuItem render={<Link href="/dashboard/copy" />}>
         <Copy className="size-4" />

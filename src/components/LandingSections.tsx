@@ -17,7 +17,7 @@ export default function LandingSections({ content }: LandingSectionsProps) {
     <main>
       <Hero content={content.hero} />
       <Narrative />
-      <ProductShowcase products={content.products} content={content.productShowcase} />
+      <ProductShowcase series={content.series} content={content.productShowcase} />
       <Lookbook spreads={content.lookbookSpreads} content={content.lookbook} />
       <SocialProof />
       <CraftPhilosophy />

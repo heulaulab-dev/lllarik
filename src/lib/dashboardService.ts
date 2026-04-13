@@ -9,6 +9,7 @@ import { notifyApiError } from "@/lib/http/notify";
 export type DashboardProduct = {
   id?: string;
   productId?: string;
+  seriesId?: string;
   state?: string;
   name: string;
   category: string;
@@ -19,6 +20,39 @@ export type DashboardProduct = {
   imageUrl: string;
   slug?: string;
   sortOrder?: number;
+};
+
+export type DashboardSeriesDraftSlice = {
+  name: string;
+  versionId: string;
+  category: string;
+  material: string;
+  story: string;
+  tags: string[];
+  images: string[];
+  imageUrl: string;
+};
+
+export type DashboardSeriesListItem = {
+  seriesId: string;
+  slug: string;
+  sortOrder: number;
+  productCount: number;
+  draft: DashboardSeriesDraftSlice | null;
+  published: DashboardSeriesDraftSlice | null;
+};
+
+export type DashboardSeriesForm = {
+  seriesId: string;
+  slug: string;
+  sortOrder: number;
+  name: string;
+  category: string;
+  material: string;
+  story: string;
+  tags: string[];
+  images: string[];
+  imageUrl: string;
 };
 
 export type PresignUploadResponse = {
@@ -60,9 +94,11 @@ function normalizeProduct(item: RawRecord): DashboardProduct {
   const images = readStringArray(item, "images", "Images");
   const imageUrl = readString(item, "imageUrl", "ImageURL");
 
+  const productRowId = readString(item, "productId", "ProductID") || readString(item, "product_id");
   return {
-    id: readString(item, "id", "ID"),
+    id: productRowId || readString(item, "id", "ID"),
     productId: readString(item, "productId", "ProductID"),
+    seriesId: readString(item, "seriesId", "series_id"),
     state: readString(item, "state", "State"),
     name: readString(item, "name", "Name"),
     category: readString(item, "category", "Category"),
@@ -73,6 +109,37 @@ function normalizeProduct(item: RawRecord): DashboardProduct {
     imageUrl: images[0] ?? imageUrl,
     slug: readString(item, "slug", "Slug"),
     sortOrder: readNumber(item, "sortOrder", "SortOrder"),
+  };
+}
+
+function normalizeSeriesDraftSlice(raw: unknown): DashboardSeriesDraftSlice | null {
+  if (!raw || typeof raw !== "object") return null;
+  const record = raw as RawRecord;
+  const images = readStringArray(record, "images", "Images");
+  const imageUrl = readString(record, "imageUrl", "ImageURL");
+  const name = readString(record, "name", "Name");
+  const versionId = readString(record, "versionId", "VersionId");
+  if (!name || !versionId) return null;
+  return {
+    name,
+    versionId,
+    category: readString(record, "category", "Category"),
+    material: readString(record, "material", "Material"),
+    story: readString(record, "story", "Story"),
+    tags: readStringArray(record, "tags", "Tags"),
+    images,
+    imageUrl: images[0] ?? imageUrl,
+  };
+}
+
+function normalizeSeriesListItem(item: RawRecord): DashboardSeriesListItem {
+  return {
+    seriesId: readString(item, "seriesId", "series_id"),
+    slug: readString(item, "slug", "Slug"),
+    sortOrder: readNumber(item, "sortOrder", "SortOrder"),
+    productCount: readNumber(item, "productCount", "product_count"),
+    draft: normalizeSeriesDraftSlice(item.draft),
+    published: normalizeSeriesDraftSlice(item.published),
   };
 }
 
@@ -246,14 +313,22 @@ export function useDashboardProducts() {
     mutationFn: (payload: DashboardProduct) =>
       apiRequest({ url: "/api/v1/content/products", method: "POST", data: payload }),
     onError: (error) => notifyApiError(normalizeApiError(error)),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["dashboard-products"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboard-products"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-products-draft"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-series"] });
+    },
   });
 
   const updateProduct = useMutation({
     mutationFn: ({ id, payload }: { id: string; payload: DashboardProduct }) =>
       apiRequest({ url: `/api/v1/content/products/${id}/draft`, method: "PUT", data: payload }),
     onError: (error) => notifyApiError(normalizeApiError(error)),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["dashboard-products"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboard-products"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-products-draft"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-series"] });
+    },
   });
 
   return {
@@ -262,6 +337,78 @@ export function useDashboardProducts() {
     createProduct,
     updateProduct,
   };
+}
+
+export function useDashboardSeriesList() {
+  const accessToken = useDashboardAuthStore((s) => s.accessToken);
+  return useQuery({
+    queryKey: ["dashboard-series", accessToken],
+    queryFn: async () => {
+      const response = await apiRequest<{ items: RawRecord[] }>({ url: "/api/v1/content/series" });
+      return {
+        items: (response.items ?? []).map(normalizeSeriesListItem).filter((row) => row.seriesId.length > 0),
+      };
+    },
+    enabled: !!accessToken,
+  });
+}
+
+export function useDashboardProductsForSeries(seriesId: string | undefined) {
+  const accessToken = useDashboardAuthStore((s) => s.accessToken);
+  return useQuery({
+    queryKey: ["dashboard-products-draft", seriesId, accessToken],
+    queryFn: async () => {
+      const q = seriesId
+        ? `?state=draft&seriesId=${encodeURIComponent(seriesId)}`
+        : "?state=draft";
+      const response = await apiRequest<{ items: RawRecord[] }>({ url: `/api/v1/content/products${q}` });
+      return { items: (response.items ?? []).map(normalizeProduct) };
+    },
+    enabled: !!accessToken && !!seriesId,
+  });
+}
+
+type SeriesCreatePayload = {
+  slug: string;
+  sortOrder?: number;
+  name: string;
+  category?: string;
+  material?: string;
+  story?: string;
+  tags?: string[];
+  images?: string[];
+  imageUrl?: string;
+};
+
+export function useSeriesDraftMutations() {
+  const queryClient = useQueryClient();
+  const createSeries = useMutation({
+    mutationFn: (payload: SeriesCreatePayload) =>
+      apiRequest<{ seriesId: string }>({ url: "/api/v1/content/series", method: "POST", data: payload }),
+    onError: (error) => notifyApiError(normalizeApiError(error)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboard-series"] });
+    },
+  });
+  const updateSeries = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: SeriesCreatePayload }) =>
+      apiRequest({ url: `/api/v1/content/series/${id}/draft`, method: "PUT", data: payload }),
+    onError: (error) => notifyApiError(normalizeApiError(error)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboard-series"] });
+    },
+  });
+  const unpublishSeries = useMutation({
+    mutationFn: (id: string) =>
+      apiRequest({ url: `/api/v1/content/series/${id}/unpublish`, method: "POST" }),
+    onError: (error) => notifyApiError(normalizeApiError(error)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboard-series"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-products-published"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-products"] });
+    },
+  });
+  return { createSeries, updateSeries, unpublishSeries };
 }
 
 export function useDashboardCopy() {
@@ -310,6 +457,7 @@ export function useDashboardReleases() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dashboard-releases"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-products"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-series"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-copy"] });
     },
   });
@@ -366,6 +514,7 @@ export function useDashboardPublishedContent() {
       queryClient.invalidateQueries({ queryKey: ["dashboard-products-published"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-products-draft"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-products"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-series"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-releases"] });
     },
   });

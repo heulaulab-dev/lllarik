@@ -7,6 +7,18 @@ export type LandingProduct = {
   image: string;
 };
 
+export type LandingSeries = {
+  id: string;
+  slug: string;
+  name: string;
+  category: string;
+  material: string;
+  story: string;
+  tags: string[];
+  image: string;
+  products: LandingProduct[];
+};
+
 export type HeroContent = {
   estLine: string;
   navCollection: string;
@@ -53,7 +65,7 @@ export type LandingContent = {
   hero: HeroContent;
   productShowcase: ProductShowcaseContent;
   lookbook: LookbookContent;
-  products: LandingProduct[];
+  series: LandingSeries[];
   lookbookSpreads: LookbookSpread[];
 };
 
@@ -127,6 +139,19 @@ export const defaultProducts: LandingProduct[] = [
   },
 ];
 
+const defaultSeriesFromProducts: LandingSeries = {
+  id: "default-local",
+  slug: "vol-01-the-essential",
+  name: "The Essential",
+  category: "Collection",
+  material: "",
+  story:
+    "Four mirrors. Four silhouettes. Each one a different way to see yourself and the space you call home.",
+  tags: ["Vol. 01"],
+  image: defaultProducts[0]?.image ?? "/products/01. SOLEN.jpg.jpeg",
+  products: defaultProducts,
+};
+
 export const defaultLandingContent: LandingContent = {
   hero: {
     estLine: "Est. 2026 — Jakarta, Indonesia",
@@ -162,7 +187,7 @@ export const defaultLandingContent: LandingContent = {
       "Four mirrors. Four silhouettes. Each one a different way to see yourself and the space you call home.",
     closingLine: "End of Vol. 01",
   },
-  products: defaultProducts,
+  series: [defaultSeriesFromProducts],
   lookbookSpreads: [
     {
       image: "/products/02. AVEN.jpg.jpeg",
@@ -196,6 +221,7 @@ export const defaultLandingContent: LandingContent = {
 };
 
 type PublicApiResponse = {
+  series?: Array<Record<string, unknown>>;
   products?: Array<Record<string, unknown>>;
   copy?: Record<string, string>;
 };
@@ -203,10 +229,87 @@ type PublicApiResponse = {
 const getCopy = (copy: Record<string, string> | undefined, key: string, fallback: string) =>
   copy?.[key] && copy[key].trim().length > 0 ? copy[key] : fallback;
 
+function mapLandingProductRecord(item: Record<string, unknown>): LandingProduct | null {
+  const tagsRaw = item.tags ?? item.Tags;
+  const tags = Array.isArray(tagsRaw)
+    ? tagsRaw.map((t) => String(t))
+    : typeof tagsRaw === "string"
+      ? tagsRaw.split(",").map((t) => t.trim()).filter(Boolean)
+      : [];
+  const imagesRaw = item.images ?? item.Images;
+  let image = "";
+  if (Array.isArray(imagesRaw) && imagesRaw.length > 0) {
+    image = normalizeLandingImageSrc(String(imagesRaw[0]));
+  }
+  if (!image) {
+    image = normalizeLandingImageSrc(String(item.image_url ?? item.imageUrl ?? item.image ?? ""));
+  }
+  const name = String(item.name ?? item.Name ?? "");
+  if (!name || !image) return null;
+  return {
+    name,
+    category: String(item.category ?? item.Category ?? ""),
+    material: String(item.material ?? item.Material ?? ""),
+    story: String(item.story ?? item.Story ?? ""),
+    tags,
+    image,
+  };
+}
+
+function mapLandingSeriesRecord(item: Record<string, unknown>): LandingSeries | null {
+  const id = String(item.id ?? "");
+  const slug = String(item.slug ?? item.Slug ?? id);
+  const productsRaw = item.products ?? item.Products;
+  if (!Array.isArray(productsRaw)) return null;
+  const products = productsRaw
+    .map((p) => mapLandingProductRecord(p as Record<string, unknown>))
+    .filter((p): p is LandingProduct => p !== null);
+  if (products.length === 0) return null;
+
+  const tagsRaw = item.tags ?? item.Tags;
+  const tags = Array.isArray(tagsRaw)
+    ? tagsRaw.map((t) => String(t))
+    : typeof tagsRaw === "string"
+      ? tagsRaw.split(",").map((t) => t.trim()).filter(Boolean)
+      : [];
+  const imagesRaw = item.images ?? item.Images;
+  let image = "";
+  if (Array.isArray(imagesRaw) && imagesRaw.length > 0) {
+    image = normalizeLandingImageSrc(String(imagesRaw[0]));
+  }
+  if (!image) {
+    image = normalizeLandingImageSrc(String(item.image_url ?? item.imageUrl ?? item.image ?? ""));
+  }
+  if (!image) image = products[0]?.image ?? "";
+
+  const name = String(item.name ?? item.Name ?? "").trim() || slug;
+  if (!image) return null;
+
+  return {
+    id: id || slug,
+    slug,
+    name,
+    category: String(item.category ?? item.Category ?? ""),
+    material: String(item.material ?? item.Material ?? ""),
+    story: String(item.story ?? item.Story ?? ""),
+    tags,
+    image,
+    products,
+  };
+}
+
+function flattenSeriesProducts(seriesList: LandingSeries[]): LandingProduct[] {
+  const out: LandingProduct[] = [];
+  for (const s of seriesList) {
+    out.push(...s.products);
+  }
+  return out;
+}
+
 export async function getLandingContent(): Promise<LandingContent> {
   const emptyProductContent: LandingContent = {
     ...defaultLandingContent,
-    products: [],
+    series: [],
     lookbookSpreads: [],
   };
 
@@ -220,25 +323,31 @@ export async function getLandingContent(): Promise<LandingContent> {
     const data = (await response.json()) as PublicApiResponse;
     const copy = data.copy;
 
-    const mappedProducts =
-      data.products?.map((item) => {
-        const tagsRaw = item.tags ?? item.Tags;
-        const tags = Array.isArray(tagsRaw)
-          ? tagsRaw.map((t) => String(t))
-          : typeof tagsRaw === "string"
-            ? tagsRaw.split(",").map((t) => t.trim()).filter(Boolean)
-            : [];
-        return {
-          name: String(item.name ?? item.Name ?? ""),
-          category: String(item.category ?? item.Category ?? ""),
-          material: String(item.material ?? item.Material ?? ""),
-          story: String(item.story ?? item.Story ?? ""),
-          tags,
-          image: normalizeLandingImageSrc(String(item.image_url ?? item.ImageURL ?? item.image ?? "")),
-        } satisfies LandingProduct;
-      }).filter((p) => p.name && p.image) ?? [];
+    let mappedSeries =
+      data.series?.map((item) => mapLandingSeriesRecord(item)).filter((s): s is LandingSeries => s !== null) ?? [];
 
-    const products = mappedProducts;
+    if (mappedSeries.length === 0 && data.products && data.products.length > 0) {
+      const legacyProducts = data.products
+        .map((item) => mapLandingProductRecord(item))
+        .filter((p): p is LandingProduct => p !== null);
+      if (legacyProducts.length > 0) {
+        mappedSeries = [
+          {
+            id: "legacy-flat",
+            slug: "collection",
+            name: legacyProducts[0]?.name ?? "Collection",
+            category: legacyProducts[0]?.category ?? "",
+            material: "",
+            story: legacyProducts[0]?.story ?? "",
+            tags: [],
+            image: legacyProducts[0]?.image ?? "",
+            products: legacyProducts,
+          },
+        ];
+      }
+    }
+
+    const flatProducts = flattenSeriesProducts(mappedSeries);
 
     return {
       hero: {
@@ -284,8 +393,8 @@ export async function getLandingContent(): Promise<LandingContent> {
         intro: getCopy(copy, "lookbook.intro", defaultLandingContent.lookbook.intro),
         closingLine: getCopy(copy, "lookbook.closingLine", defaultLandingContent.lookbook.closingLine),
       },
-      products,
-      lookbookSpreads: products.map((product, index) => ({
+      series: mappedSeries,
+      lookbookSpreads: flatProducts.map((product, index) => ({
         image: product.image,
         title: product.name,
         subtitle: product.category,
