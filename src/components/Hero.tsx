@@ -173,7 +173,6 @@ export default function Hero({ content = defaultLandingContent.hero }: HeroProps
 							alt={content.heroImageAlt}
 							fill
 							priority
-							quality={68}
 							sizes='(max-width: 640px) 92vw, (max-width: 1024px) 86vw, 40vw'
 							className='object-cover'
 							style={{
@@ -192,17 +191,15 @@ export default function Hero({ content = defaultLandingContent.hero }: HeroProps
 
 			{/* Trust Signals */}
 			<div className='z-10 relative flex flex-wrap gap-x-12 gap-y-3 mt-16 md:mt-20 pb-12 animate-reveal-up delay-1000'>
-				{content.trustSignals.map(
-					(signal, i) => (
-						<span
-							key={signal}
-							className='text-[10px] text-muted-foreground/50 uppercase tracking-[0.3em]'
-							style={{ animationDelay: `${1000 + i * 150}ms` }}
-						>
-							◆ {signal}
-						</span>
-					),
-				)}
+				{content.trustSignals.map((signal, i) => (
+					<span
+						key={signal}
+						className='text-[10px] text-muted-foreground/50 uppercase tracking-[0.3em]'
+						style={{ animationDelay: `${1000 + i * 150}ms` }}
+					>
+						◆ {signal}
+					</span>
+				))}
 			</div>
 
 			<div className='right-6 md:right-12 lg:right-20 bottom-0 left-6 md:left-12 lg:left-20 absolute bg-border h-px animate-line-grow delay-1200' />

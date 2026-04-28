@@ -38,13 +38,12 @@ function LookbookSpread({
             : "lg:col-span-7 lg:col-start-6 lg:row-start-1"
         }`}
       >
-        <div className="relative aspect-3/4 w-full">
+        <div className="relative w-full aspect-3/4">
           <Image
             src={spread.image}
             alt={`${spread.title} — LLLARIK.id Lookbook`}
             fill
             loading="lazy"
-            quality={65}
             sizes="(max-width: 1024px) 100vw, 58vw"
             className="object-cover"
           />
@@ -60,16 +59,16 @@ function LookbookSpread({
             : "lg:col-span-4 lg:col-start-1 lg:pr-8 lg:row-start-1"
         }`}
       >
-        <p className="text-[10px] tracking-[0.4em] uppercase text-muted-foreground mb-3">
+        <p className="mb-3 text-[10px] text-muted-foreground uppercase tracking-[0.4em]">
           {String(index + 1).padStart(2, "0")} — {spread.subtitle}
         </p>
-        <h3 className="text-3xl md:text-4xl font-bold tracking-tight uppercase">
+        <h3 className="font-bold text-3xl md:text-4xl uppercase tracking-tight">
           {spread.title}
         </h3>
-        <p className="text-sm text-muted-foreground leading-relaxed mt-4 max-w-sm">
+        <p className="mt-4 max-w-sm text-muted-foreground text-sm leading-relaxed">
           {spread.caption}
         </p>
-        <div className="w-12 h-px bg-foreground mt-6" />
+        <div className="bg-foreground mt-6 w-12 h-px" />
       </div>
     </div>
   );
@@ -87,20 +86,20 @@ export default function Lookbook({
   const titleRef = useScrollReveal<HTMLDivElement>("up");
 
   return (
-    <section id="lookbook" className="relative py-32 md:py-48 px-6 md:px-12 lg:px-20">
+    <section id="lookbook" className="relative px-6 md:px-12 lg:px-20 py-32 md:py-48">
       <div ref={titleRef} className="mb-20 md:mb-28">
         <div className="flex items-center gap-6 mb-6">
-          <p className="text-[10px] tracking-[0.4em] uppercase text-muted-foreground shrink-0">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-[0.4em] shrink-0">
             {content.label}
           </p>
           <Separator className="flex-1" />
         </div>
-        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-[1.05] tracking-tight uppercase max-w-3xl">
+        <h2 className="max-w-3xl font-bold text-3xl md:text-4xl lg:text-5xl uppercase leading-[1.05] tracking-tight">
           {content.headingLine1}
           <br />
-          <span className="font-normal normal-case italic">{content.headingAccent}</span>
+          <span className="font-normal italic normal-case">{content.headingAccent}</span>
         </h2>
-        <p className="text-xs text-muted-foreground leading-relaxed mt-6 max-w-md">
+        <p className="mt-6 max-w-md text-muted-foreground text-xs leading-relaxed">
           {content.intro}
         </p>
       </div>
@@ -111,9 +110,9 @@ export default function Lookbook({
       ))}
 
       {/* Closing editorial line */}
-      <div className="mt-24 md:mt-32 flex items-center gap-6">
+      <div className="flex items-center gap-6 mt-24 md:mt-32">
         <Separator className="flex-1" />
-        <p className="text-[10px] tracking-[0.3em] uppercase text-muted-foreground/50 shrink-0">
+        <p className="text-[10px] text-muted-foreground/50 uppercase tracking-[0.3em] shrink-0">
           {content.closingLine}
         </p>
         <Separator className="flex-1" />
