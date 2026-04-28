@@ -20,73 +20,112 @@ import {
 } from "@/lib/landingContent";
 
 const IMAGE_BLUR_DATA_URL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+const DOWNSCALED_QUERY_PARAMS = ['w', 'width', 'q', 'quality', 'dpr'] as const;
+
+function getHiResImageSrc(src: string): string {
+	if (!src) return src;
+
+	try {
+		const isAbsolute = src.startsWith('http://') || src.startsWith('https://');
+		const parsed = new URL(src, 'http://localhost');
+		let changed = false;
+
+		DOWNSCALED_QUERY_PARAMS.forEach((param) => {
+			if (parsed.searchParams.has(param)) {
+				parsed.searchParams.delete(param);
+				changed = true;
+			}
+		});
+
+		if (!changed) return src;
+		if (isAbsolute) return parsed.toString();
+
+		return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+	} catch {
+		return src;
+	}
+}
 
 function SeriesCard({ series, index, onClick }: { series: LandingSeries; index: number; onClick: () => void }) {
   const cardRef = useScrollReveal<HTMLDivElement>(index % 2 === 0 ? "up" : "right");
 
   return (
-    <div
-      ref={cardRef}
-      className="group relative cursor-pointer"
-      style={{ transitionDelay: `${index * 100}ms` }}
-      onClick={onClick}
-    >
-      <div className="relative bg-card w-full overflow-hidden" style={{ aspectRatio: index === 0 || index === 3 ? "3/4" : "4/3" }}>
-        <Image
-          src={series.image}
-          alt={series.name}
-          fill
-          loading="lazy"
-          quality={100}
-          placeholder="blur"
-          blurDataURL={IMAGE_BLUR_DATA_URL}
-          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          className="object-cover group-hover:scale-105 transition-transform duration-700"
-        />
+		<div
+			ref={cardRef}
+			className='group relative cursor-pointer'
+			style={{ transitionDelay: `${index * 100}ms` }}
+			onClick={onClick}
+		>
+			<div
+				className='relative bg-card w-full overflow-hidden'
+				style={{ aspectRatio: index === 0 || index === 3 ? '3/4' : '4/3' }}
+			>
+				<Image
+					src={getHiResImageSrc(series.image)}
+					alt={series.name}
+					fill
+					loading='lazy'
+					quality={100}
+					placeholder='blur'
+					blurDataURL={IMAGE_BLUR_DATA_URL}
+					sizes='(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw'
+					className='object-cover group-hover:scale-105 transition-transform duration-700'
+				/>
 
-        <div className="absolute inset-0 flex flex-col justify-end bg-linear-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 p-6 transition-opacity duration-500">
-          <p className="mb-3 text-white/90 text-xs leading-relaxed">{series.story}</p>
-          <p className="text-[9px] text-white/60 uppercase tracking-[0.2em]">{series.material || `${series.products.length} pieces`}</p>
-        </div>
+				<div className='absolute inset-0 flex flex-col justify-end bg-linear-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 p-6 transition-opacity duration-500'>
+					<p className='mb-3 text-white/90 text-xs leading-relaxed'>
+						{series.story}
+					</p>
+					<p className='text-[9px] text-white/60 uppercase tracking-[0.2em]'>
+						{series.material || `${series.products.length} pieces`}
+					</p>
+				</div>
 
-        <div className="top-4 left-4 absolute text-[10px] text-white/50 tracking-widest mix-blend-difference">
-          {String(index + 1).padStart(2, "0")}
-        </div>
-        <div className="top-4 right-4 absolute text-[10px] text-white/50 uppercase tracking-[0.2em] mix-blend-difference">
-          {series.category}
-        </div>
-      </div>
+				<div className='top-4 left-4 absolute text-[10px] text-white/50 tracking-widest mix-blend-difference'>
+					{String(index + 1).padStart(2, '0')}
+				</div>
+				<div className='top-4 right-4 absolute text-[10px] text-white/50 uppercase tracking-[0.2em] mix-blend-difference'>
+					{series.category}
+				</div>
+			</div>
 
-      <div className="flex justify-between items-start mt-4">
-        <div>
-          <h3 className="font-bold text-sm md:text-base uppercase tracking-tight">{series.name}</h3>
-          <div className="flex flex-wrap gap-1.5 mt-2">
-            {series.tags.map((tag) => (
-              <Badge
-                key={tag}
-                variant="outline"
-                className="px-2 py-0.5 h-auto font-normal text-[8px] text-muted-foreground uppercase tracking-[0.15em]"
-              >
-                {tag}
-              </Badge>
-            ))}
-          </div>
-        </div>
-        <div className="flex justify-center items-center group-hover:bg-primary border border-border group-hover:border-primary w-8 h-8 transition-all duration-300 shrink-0">
-          <svg width="10" height="10" viewBox="0 0 10 10" className="text-foreground group-hover:text-primary-foreground transition-colors duration-300">
-            <path
-              d="M1 9L9 1M9 1H3M9 1v6"
-              stroke="currentColor"
-              strokeWidth="1.2"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </div>
-      </div>
-    </div>
-  );
+			<div className='flex justify-between items-start mt-4'>
+				<div>
+					<h3 className='font-bold text-sm md:text-base uppercase tracking-tight'>
+						{series.name}
+					</h3>
+					<div className='flex flex-wrap gap-1.5 mt-2'>
+						{series.tags.map((tag) => (
+							<Badge
+								key={tag}
+								variant='outline'
+								className='px-2 py-0.5 h-auto font-normal text-[8px] text-muted-foreground uppercase tracking-[0.15em]'
+							>
+								{tag}
+							</Badge>
+						))}
+					</div>
+				</div>
+				<div className='flex justify-center items-center group-hover:bg-primary border border-border group-hover:border-primary w-8 h-8 transition-all duration-300 shrink-0'>
+					<svg
+						width='10'
+						height='10'
+						viewBox='0 0 10 10'
+						className='text-foreground group-hover:text-primary-foreground transition-colors duration-300'
+					>
+						<path
+							d='M1 9L9 1M9 1H3M9 1v6'
+							stroke='currentColor'
+							strokeWidth='1.2'
+							fill='none'
+							strokeLinecap='round'
+							strokeLinejoin='round'
+						/>
+					</svg>
+				</div>
+			</div>
+		</div>
+	);
 }
 
 function ProductModal({
@@ -105,66 +144,76 @@ function ProductModal({
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(val) => {
-        if (!val) onClose();
-      }}
-    >
-      <DialogContent className="p-0 sm:max-w-3xl overflow-hidden" showCloseButton={true}>
-        <div className="grid grid-cols-1 md:grid-cols-2">
-          <div className="relative bg-card aspect-3/4">
-            <Image
-              src={product.image}
-              alt={product.name}
-              fill
-              loading="eager"
-              quality={70}
-              sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-cover"
-            />
-          </div>
+		<Dialog
+			open={open}
+			onOpenChange={(val) => {
+				if (!val) onClose();
+			}}
+		>
+			<DialogContent
+				className='p-0 sm:max-w-3xl overflow-hidden'
+				showCloseButton={true}
+			>
+				<div className='grid grid-cols-1 md:grid-cols-2'>
+					<div className='relative bg-card aspect-3/4'>
+						<Image
+							src={product.image}
+							alt={product.name}
+							fill
+							loading='eager'
+							sizes='(max-width: 768px) 100vw, 50vw'
+							className='object-cover'
+						/>
+					</div>
 
-          <div className="flex flex-col justify-between p-8 md:p-10">
-            <DialogHeader className="text-left">
-              <p className="mb-2 text-[10px] text-muted-foreground uppercase tracking-[0.4em]">{product.category}</p>
-              <DialogTitle className="font-bold text-xl uppercase tracking-tight">{product.name}</DialogTitle>
-              <DialogDescription className="mt-3 text-muted-foreground text-sm leading-relaxed">{product.story}</DialogDescription>
-            </DialogHeader>
+					<div className='flex flex-col justify-between p-8 md:p-10'>
+						<DialogHeader className='text-left'>
+							<p className='mb-2 text-[10px] text-muted-foreground uppercase tracking-[0.4em]'>
+								{product.category}
+							</p>
+							<DialogTitle className='font-bold text-xl uppercase tracking-tight'>
+								{product.name}
+							</DialogTitle>
+							<DialogDescription className='mt-3 text-muted-foreground text-sm leading-relaxed'>
+								{product.story}
+							</DialogDescription>
+						</DialogHeader>
 
-            <div className="space-y-4 mt-6">
-              <p className="text-muted-foreground text-xs">
-                <span className="font-bold text-foreground">Material:</span> {product.material}
-              </p>
-              {product.size ? (
-                <p className="text-muted-foreground text-xs">
-                  <span className="font-bold text-foreground">Size:</span> {product.size}
-                </p>
-              ) : null}
-              <div className="flex flex-wrap gap-1.5">
-                {product.tags.map((tag) => (
-                  <Badge
-                    key={tag}
-                    variant="outline"
-                    className="px-2.5 py-1 border-foreground/20 h-auto font-normal text-[8px] text-foreground uppercase tracking-[0.15em]"
-                  >
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
+						<div className='space-y-4 mt-6'>
+							<p className='text-muted-foreground text-xs'>
+								<span className='font-bold text-foreground'>Material:</span>{' '}
+								{product.material}
+							</p>
+							{product.size ? (
+								<p className='text-muted-foreground text-xs'>
+									<span className='font-bold text-foreground'>Size:</span>{' '}
+									{product.size}
+								</p>
+							) : null}
+							<div className='flex flex-wrap gap-1.5'>
+								{product.tags.map((tag) => (
+									<Badge
+										key={tag}
+										variant='outline'
+										className='px-2.5 py-1 border-foreground/20 h-auto font-normal text-[8px] text-foreground uppercase tracking-[0.15em]'
+									>
+										{tag}
+									</Badge>
+								))}
+							</div>
 
-              <Button
-                onClick={directLink}
-                className="bg-primary hover:bg-foreground/80 mt-4 py-4 w-full h-auto text-[10px] text-primary-foreground uppercase tracking-[0.25em] transition-colors duration-500"
-              >
-                Inquire About This Piece
-              </Button>
-            </div>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
+							<Button
+								onClick={directLink}
+								className='bg-primary hover:bg-foreground/80 mt-4 py-4 w-full h-auto text-[10px] text-primary-foreground uppercase tracking-[0.25em] transition-colors duration-500'
+							>
+								Inquire About This Piece
+							</Button>
+						</div>
+					</div>
+				</div>
+			</DialogContent>
+		</Dialog>
+	);
 }
 
 function SeriesDialog({
@@ -181,49 +230,63 @@ function SeriesDialog({
   if (!series) return null;
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(val) => {
-        if (!val) onClose();
-      }}
-    >
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl" showCloseButton={true}>
-        <DialogHeader className="text-left">
-          <p className="mb-2 text-[10px] text-muted-foreground uppercase tracking-[0.4em]">{series.category}</p>
-          <DialogTitle className="font-bold text-xl uppercase tracking-tight">{series.name}</DialogTitle>
-          <DialogDescription className="mt-3 text-muted-foreground text-sm leading-relaxed">{series.story}</DialogDescription>
-        </DialogHeader>
+		<Dialog
+			open={open}
+			onOpenChange={(val) => {
+				if (!val) onClose();
+			}}
+		>
+			<DialogContent
+				className='sm:max-w-3xl max-h-[90vh] overflow-y-auto'
+				showCloseButton={true}
+			>
+				<DialogHeader className='text-left'>
+					<p className='mb-2 text-[10px] text-muted-foreground uppercase tracking-[0.4em]'>
+						{series.category}
+					</p>
+					<DialogTitle className='font-bold text-xl uppercase tracking-tight'>
+						{series.name}
+					</DialogTitle>
+					<DialogDescription className='mt-3 text-muted-foreground text-sm leading-relaxed'>
+						{series.story}
+					</DialogDescription>
+				</DialogHeader>
 
-        <div className="mt-6">
-          <p className="mb-3 text-[10px] text-muted-foreground uppercase tracking-[0.3em]">Pieces in this series</p>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            {series.products.map((p) => (
-              <button
-                key={`${series.id}-${p.name}`}
-                type="button"
-                className="group text-left rounded-md border border-border overflow-hidden hover:border-primary transition-colors"
-                onClick={() => onPickProduct(p)}
-              >
-                <div className="relative aspect-3/4 bg-card">
-                  <Image
-                    src={p.image}
-                    alt={p.name}
-                    fill
-                    quality={100}
-                    placeholder="blur"
-                    blurDataURL={IMAGE_BLUR_DATA_URL}
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    sizes="200px"
-                  />
-                </div>
-                <p className="p-2 font-bold text-[10px] uppercase tracking-tight truncate">{p.name}</p>
-              </button>
-            ))}
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
+				<div className='mt-6'>
+					<p className='mb-3 text-[10px] text-muted-foreground uppercase tracking-[0.3em]'>
+						Pieces in this series
+					</p>
+					<div className='gap-4 grid grid-cols-2 sm:grid-cols-3'>
+						{series.products.map((p) => (
+							<button
+								key={`${series.id}-${p.name}`}
+								type='button'
+								className='group border border-border hover:border-primary rounded-md overflow-hidden text-left transition-colors'
+								onClick={() => onPickProduct(p)}
+							>
+								<div className='relative bg-card aspect-3/4'>
+									<Image
+										src={getHiResImageSrc(p.image)}
+										alt={p.name}
+										fill
+										loading='eager'
+										quality={100}
+										placeholder='blur'
+										blurDataURL={IMAGE_BLUR_DATA_URL}
+										className='object-cover group-hover:scale-105 transition-transform duration-500'
+										sizes='(max-width: 640px) 45vw, (max-width: 1024px) 30vw, 240px'
+									/>
+								</div>
+								<p className='p-2 font-bold text-[10px] truncate uppercase tracking-tight'>
+									{p.name}
+								</p>
+							</button>
+						))}
+					</div>
+				</div>
+			</DialogContent>
+		</Dialog>
+	);
 }
 
 type ProductShowcaseProps = {
