@@ -19,6 +19,8 @@ import {
   type ProductShowcaseContent,
 } from "@/lib/landingContent";
 
+const IMAGE_BLUR_DATA_URL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+
 function SeriesCard({ series, index, onClick }: { series: LandingSeries; index: number; onClick: () => void }) {
   const cardRef = useScrollReveal<HTMLDivElement>(index % 2 === 0 ? "up" : "right");
 
@@ -35,7 +37,9 @@ function SeriesCard({ series, index, onClick }: { series: LandingSeries; index: 
           alt={series.name}
           fill
           loading="lazy"
-          quality={60}
+          quality={100}
+          placeholder="blur"
+          blurDataURL={IMAGE_BLUR_DATA_URL}
           sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
           className="object-cover group-hover:scale-105 transition-transform duration-700"
         />
@@ -205,6 +209,9 @@ function SeriesDialog({
                     src={p.image}
                     alt={p.name}
                     fill
+                    quality={100}
+                    placeholder="blur"
+                    blurDataURL={IMAGE_BLUR_DATA_URL}
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                     sizes="200px"
                   />
